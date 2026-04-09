@@ -1,6 +1,6 @@
-# ArCo
+# AmEle
 
-ArCo e una piccola applicazione Streamlit per gestire un archivio di condomini con struttura gerarchica:
+AmEle e una piccola applicazione Streamlit per gestire un archivio di condomini con struttura gerarchica:
 
 - un archivio contiene piu condomini
 - ogni condominio contiene piu palazzine
