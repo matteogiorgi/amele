@@ -18,7 +18,7 @@ L'app permette di lavorare sui dati da interfaccia grafica, salvandoli nel file 
 
 ## Modello dati
 
-La gerarchia e questa:
+La gerarchia è questa:
 
 - `ArchivioCondomini`
   - contiene la lista dei condomini
