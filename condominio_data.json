@@ -1,0 +1,44 @@
+{
+  "condomini": [
+    {
+      "movimenti": [
+        {
+          "descrizione": "spese giardino",
+          "importo": 1000.0,
+          "tipo": "pagamento",
+          "data_movimento": "2026-04-09"
+        }
+      ],
+      "nome": "Condo2",
+      "indirizzo": "via Trieste 35",
+      "palazzine": [
+        {
+          "movimenti": [],
+          "nome": "pippo",
+          "appartamenti": [
+            {
+              "movimenti": [],
+              "codice": "1231245",
+              "interno": "01",
+              "piano": "1",
+              "superficie_mq": 100.0,
+              "millesimi": 200.0,
+              "proprietario": "Mario Rossi",
+              "occupante": null,
+              "note": "qlkjf klqwjrlkqwj"
+            }
+          ],
+          "note": "alalalallallala"
+        }
+      ],
+      "note": "pippo"
+    },
+    {
+      "movimenti": [],
+      "nome": "Condo-01",
+      "indirizzo": "via Barabba 2",
+      "palazzine": [],
+      "note": "lalalalla"
+    }
+  ]
+}
