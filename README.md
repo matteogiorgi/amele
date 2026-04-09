@@ -9,12 +9,18 @@ AmEle e una piccola applicazione Streamlit per gestire un archivio di condomini 
 
 L'app permette di lavorare sui dati da interfaccia grafica, salvandoli nel file `condominio_data.json`.
 
+
+
+
 ## Struttura del progetto
 
 - `app_streamlit.py`: interfaccia grafica Streamlit
 - `condominio.py`: modello dati, logica di caricamento e salvataggio JSON
 - `condominio_data.json`: archivio persistente dei dati
 - `requirements.txt`: dipendenze Python da installare con `pip`
+
+
+
 
 ## Modello dati
 
@@ -47,6 +53,74 @@ La gerarchia è questa:
   - tipo (`addebito` o `pagamento`)
   - data del movimento
 
+### Diagramma delle classi
+
+```mermaid
+classDiagram
+    class ArchivioCondomini {
+        +condomini: list[Condominio]
+        +totale_saldo()
+        +totale_palazzine()
+        +totale_appartamenti()
+    }
+
+    class Condominio {
+        +nome: str
+        +indirizzo: str
+        +note: str
+        +movimenti: list[Movimento]
+        +palazzine: list[Palazzina]
+        +saldo()
+        +totale_saldo()
+    }
+
+    class Palazzina {
+        +nome: str
+        +note: str
+        +movimenti: list[Movimento]
+        +appartamenti: list[Appartamento]
+        +saldo()
+        +totale_saldo()
+    }
+
+    class Appartamento {
+        +codice: str
+        +interno: str
+        +piano: str
+        +superficie_mq: float
+        +millesimi: float
+        +note: str
+        +movimenti: list[Movimento]
+        +saldo()
+    }
+
+    class Condomino {
+        +nome: str
+        +cognome: str
+        +telefono: str
+        +email: str
+        +codice_fiscale: str
+        +nome_completo
+    }
+
+    class Movimento {
+        +descrizione: str
+        +importo: float
+        +tipo: str
+        +data_movimento: str
+    }
+
+    ArchivioCondomini "1" --> "*" Condominio
+    Condominio "1" --> "*" Palazzina
+    Palazzina "1" --> "*" Appartamento
+    Condominio "1" --> "*" Movimento
+    Palazzina "1" --> "*" Movimento
+    Appartamento "1" --> "*" Movimento
+    Appartamento "1" --> "1" Condomino : proprietario
+    Appartamento "1" --> "1" Condomino : occupante
+```
+
+
 ### Saldi
 
 I saldi sono separati per livello:
@@ -59,6 +133,9 @@ Quindi:
 - un appartamento ha solo `Saldo proprio`
 - una palazzina ha `Saldo proprio` e `Saldo complessivo` con gli appartamenti
 - un condominio ha `Saldo proprio` e `Saldo complessivo` con le palazzine e i relativi appartamenti
+
+
+
 
 ## Funzioni principali
 
@@ -78,6 +155,24 @@ In ciascuna sezione puoi:
 - gestire il rendiconto del componente selezionato
 - esportare in PDF lo stato completo del componente selezionato
 
+### Flusso principale
+
+```mermaid
+flowchart TD
+    A[Avvio app Streamlit] --> B[Caricamento condominio_data.json]
+    B --> C[Scelta sezione: Condomini, Palazzine, Appartamenti]
+    C --> D[Selezione componente corrente]
+    D --> E[Operazione utente]
+    E --> F[Aggiunta o modifica o eliminazione]
+    E --> G[Gestione rendiconto]
+    E --> H[Esportazione PDF]
+    F --> I[Salvataggio su condominio_data.json]
+    G --> I
+    H --> L[Download file PDF]
+    I --> M[Ricarica interfaccia con stato aggiornato]
+```
+
+
 ### Rendiconti
 
 Ogni sezione contiene anche il rendiconto del componente selezionato. Da qui puoi:
@@ -85,6 +180,7 @@ Ogni sezione contiene anche il rendiconto del componente selezionato. Da qui puo
 - vedere i saldi
 - vedere i movimenti registrati
 - aggiungere un nuovo movimento tramite finestra modale
+
 
 ### Proprietario e occupante
 
@@ -94,6 +190,9 @@ Regola usata nell'app:
 
 - se in inserimento o modifica lasci vuoti i campi dell'occupante, l'occupante viene impostato automaticamente uguale al proprietario
 - se l'occupante e diverso dal proprietario, puoi compilarlo manualmente
+
+
+
 
 ## Esportazione PDF
 
@@ -111,6 +210,9 @@ Il PDF contiene:
 - saldi
 - footer con luogo del condominio e data di generazione in formato documentale
 
+
+
+
 ## Compatibilita del file dati
 
 I dati vengono salvati in `condominio_data.json`.
@@ -120,6 +222,9 @@ Il loader in `condominio.py` gestisce anche la normalizzazione dei dati:
 - se trova vecchi proprietari salvati come stringa, li converte nel nuovo formato anagrafico
 - se l'occupante manca, lo imposta uguale al proprietario
 - se trova il vecchio formato piatto senza archivio di condomini, lo converte automaticamente nel nuovo formato gerarchico
+
+
+
 
 ## Requisiti
 
@@ -137,6 +242,9 @@ Puoi installarle con:
 pip install -r requirements.txt
 ```
 
+
+
+
 ## Avvio
 
 Per avviare l'app:
@@ -147,6 +255,9 @@ streamlit run app_streamlit.py
 
 Se usi un ambiente virtuale, attivalo prima oppure richiama direttamente il binario corretto.
 
+
+
+
 ## File generati e ignorati
 
 Il repository include un `.gitignore` che ignora:
@@ -155,6 +266,9 @@ Il repository include un `.gitignore` che ignora:
 - `.venv/`
 - `tags`
 - `.codex`
+
+
+
 
 ## Note pratiche
 
