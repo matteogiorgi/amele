@@ -153,7 +153,7 @@ In ciascuna sezione puoi:
 - eliminare un elemento con conferma modale
 - vedere una tabella riepilogativa coerente col livello selezionato
 - gestire il rendiconto del componente selezionato
-- esportare in PDF lo stato completo del componente selezionato
+- esportare lo stato completo del componente selezionato tramite una dialog unica
 
 ### Flusso principale
 
@@ -165,10 +165,11 @@ flowchart TD
     D --> E[Operazione utente]
     E --> F[Aggiunta o modifica o eliminazione]
     E --> G[Gestione rendiconto]
-    E --> H[Esportazione PDF]
+    E --> H[Apertura dialog di esportazione]
     F --> I[Salvataggio su condominio_data.json]
     G --> I
-    H --> L[Download file PDF]
+    H --> L[Scelta formato: PDF, Word o Excel]
+    L --> N[Download del file]
     I --> M[Ricarica interfaccia con stato aggiornato]
 ```
 
@@ -194,21 +195,40 @@ Regola usata nell'app:
 
 
 
-## Esportazione PDF
+## Esportazione documenti
 
-Da ogni sezione puoi esportare il componente selezionato in PDF:
+Da ogni sezione puoi esportare il componente selezionato aprendo una dialog dedicata:
 
 - `Esporta condominio`
 - `Esporta palazzina`
 - `Esporta appartamento`
 
-Il PDF contiene:
+Formati disponibili:
+
+- `PDF`
+- `Word (.docx)`
+- `Excel (.xlsx)`
+
+I documenti esportati contengono:
 
 - dati principali del componente
 - eventuali elementi collegati
 - movimenti registrati
 - saldi
-- footer con luogo del condominio e data di generazione in formato documentale
+- luogo del condominio e data di generazione in formato documentale
+
+### Diagramma del flusso di esportazione
+
+```mermaid
+flowchart TD
+    A[Click su Esporta condominio/palazzina/appartamento] --> B[Apertura dialog Esporta]
+    B --> C[Scarica PDF]
+    B --> D[Scarica Word]
+    B --> E[Scarica Excel]
+    C --> F[Chiusura dialog e download]
+    D --> F
+    E --> F
+```
 
 
 
@@ -235,6 +255,8 @@ Dipendenze Python:
 
 - `streamlit`
 - `reportlab`
+- `openpyxl`
+- `python-docx`
 
 Puoi installarle con:
 

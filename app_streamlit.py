@@ -2,9 +2,12 @@ from __future__ import annotations
 
 from datetime import date
 from io import BytesIO
+from importlib import import_module
 import re
-from typing import Iterable, cast
+from typing import Any, Iterable, cast
 
+from openpyxl import Workbook
+from openpyxl.styles import Font
 import streamlit as st
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
@@ -380,14 +383,179 @@ def build_component_pdf(
     return buffer.getvalue()
 
 
-def render_export_button(*, label: str, pdf_bytes: bytes, filename: str) -> None:
+def _autosize_worksheet_columns(worksheet) -> None:
+    for column_cells in worksheet.columns:
+        values = [
+            len(str(cell.value)) for cell in column_cells if cell.value is not None
+        ]
+        column_letter = column_cells[0].column_letter
+        worksheet.column_dimensions[column_letter].width = min(
+            max(values, default=10) + 2,
+            40,
+        )
+
+
+def _append_excel_table(worksheet, headers: list[str], rows: list[list[str]]) -> None:
+    worksheet.append(headers)
+    header_row = worksheet.max_row
+    for cell in worksheet[header_row]:
+        cell.font = Font(bold=True)
+
+    if rows:
+        for row in rows:
+            worksheet.append(row)
+    else:
+        worksheet.append(["Nessun dato disponibile."] + [""] * (len(headers) - 1))
+
+    _autosize_worksheet_columns(worksheet)
+
+
+def build_component_excel(
+    *,
+    title: str,
+    info_rows: list[tuple[str, str]],
+    movement_rows: list[list[str]],
+    child_table: tuple[list[str], list[list[str]]] | None = None,
+    footer_text: str | None = None,
+) -> bytes:
+    workbook = Workbook()
+    info_sheet = workbook.active
+    if info_sheet is None:
+        info_sheet = workbook.create_sheet(title="Dati")
+    else:
+        info_sheet.title = "Dati"
+    info_sheet.append([title])
+    info_sheet["A1"].font = Font(bold=True)
+    info_sheet.append([])
+    info_sheet.append(["Dati principali"])
+    info_sheet.cell(row=info_sheet.max_row, column=1).font = Font(bold=True)
+    for label, value in info_rows:
+        info_sheet.append([label, value or "-"])
+        current_row = info_sheet.max_row
+        info_sheet.cell(row=current_row, column=1).font = Font(bold=True)
+
+    if child_table:
+        child_headers, child_rows = child_table
+        info_sheet.append([])
+        info_sheet.append(["Elementi collegati"])
+        info_sheet.cell(row=info_sheet.max_row, column=1).font = Font(bold=True)
+        _append_excel_table(info_sheet, child_headers, child_rows)
+
+    info_sheet.append([])
+    info_sheet.append(["Movimenti"])
+    info_sheet.cell(row=info_sheet.max_row, column=1).font = Font(bold=True)
+    _append_excel_table(
+        info_sheet,
+        ["Data", "Tipo", "Descrizione", "Importo"],
+        movement_rows,
+    )
+
+    if footer_text:
+        info_sheet.append([])
+        info_sheet.append(["Luogo e data", footer_text])
+        for cell in info_sheet[info_sheet.max_row]:
+            if cell.column == 1:
+                cell.font = Font(bold=True)
+    _autosize_worksheet_columns(info_sheet)
+
+    buffer = BytesIO()
+    workbook.save(buffer)
+    return buffer.getvalue()
+
+
+def build_component_word(
+    *,
+    title: str,
+    info_rows: list[tuple[str, str]],
+    movement_rows: list[list[str]],
+    child_table: tuple[list[str], list[list[str]]] | None = None,
+    footer_text: str | None = None,
+) -> bytes:
+    try:
+        docx_module = import_module("docx")
+        wd_align_paragraph: Any = import_module("docx.enum.text").WD_ALIGN_PARAGRAPH
+    except ModuleNotFoundError as error:
+        raise RuntimeError(
+            "La libreria 'python-docx' non è installata. Installa il pacchetto per esportare in Word."
+        ) from error
+
+    document = docx_module.Document()
+    document.add_heading(title, level=1)
+
+    document.add_heading("Dati principali", level=2)
+    for label, value in info_rows:
+        paragraph = document.add_paragraph()
+        paragraph.paragraph_format.space_after = 0
+        paragraph.paragraph_format.line_spacing = 1
+        label_run = paragraph.add_run(f"{label}: ")
+        label_run.bold = True
+        paragraph.add_run(value or "-")
+
+    if child_table and child_table[1]:
+        child_headers, child_rows = child_table
+        document.add_heading("Elementi collegati", level=2)
+        child_doc_table = document.add_table(rows=1, cols=len(child_headers))
+        child_doc_table.style = "Table Grid"
+        for index, header in enumerate(child_headers):
+            child_doc_table.rows[0].cells[index].text = header
+        for child_row in child_rows:
+            row = child_doc_table.add_row().cells
+            for index, value in enumerate(child_row):
+                row[index].text = value or "-"
+
+    document.add_heading("Movimenti", level=2)
+    if movement_rows:
+        movement_table = document.add_table(rows=1, cols=4)
+        movement_table.style = "Table Grid"
+        movement_headers = ["Data", "Tipo", "Descrizione", "Importo"]
+        for index, header in enumerate(movement_headers):
+            movement_table.rows[0].cells[index].text = header
+        for movement_row in movement_rows:
+            row = movement_table.add_row().cells
+            for index, value in enumerate(movement_row):
+                row[index].text = value or "-"
+    else:
+        document.add_paragraph("Nessun movimento registrato.")
+
+    if footer_text:
+        document.add_paragraph("")
+        footer_paragraph = document.add_paragraph(footer_text)
+        footer_paragraph.alignment = wd_align_paragraph.RIGHT
+
+    buffer = BytesIO()
+    document.save(buffer)
+    return buffer.getvalue()
+
+
+def _close_export_dialog() -> None:
+    st.session_state["close_export_dialog"] = True
+
+
+def render_export_download_button(
+    *, label: str, data: bytes, filename: str, mime: str
+) -> None:
     st.download_button(
         label,
-        data=pdf_bytes,
+        data=data,
         file_name=filename,
-        mime="application/pdf",
+        mime=mime,
         use_container_width=True,
+        on_click=_close_export_dialog,
     )
+
+
+@st.dialog("Esporta", width="large")
+def open_export_dialog(*, title: str, exports: list[dict[str, str | bytes]]) -> None:
+    if st.session_state.pop("close_export_dialog", False):
+        st.rerun()
+    st.caption(title)
+    for export in exports:
+        render_export_download_button(
+            label=cast(str, export["label"]),
+            data=cast(bytes, export["data"]),
+            filename=cast(str, export["filename"]),
+            mime=cast(str, export["mime"]),
+        )
 
 
 def persistent_selectbox(
@@ -987,47 +1155,91 @@ def render_condominio_tab(archivio: ArchivioCondomini) -> None:
             ):
                 open_delete_condominio_dialog(archivio, target_name)
         with col3:
-            render_export_button(
-                label="Esporta condominio",
-                pdf_bytes=build_component_pdf(
-                    title=f"Condominio {target.nome}",
-                    info_rows=[
-                        ("Nome", target.nome),
-                        ("Indirizzo", target.indirizzo or "-"),
-                        ("Note", target.note or "-"),
-                        ("Saldo proprio", format_currency(target.saldo())),
-                        ("Saldo complessivo", format_currency(target.totale_saldo())),
+            if st.button(
+                "Esporta condominio",
+                use_container_width=True,
+                key="export_condominio_button",
+            ):
+                export_title = f"Condominio {target.nome}"
+                footer_text = (
+                    f"{location_from_address(target.indirizzo)}, "
+                    f"{format_document_date(date.today())}"
+                )
+                info_rows = [
+                    ("Nome", target.nome),
+                    ("Indirizzo", target.indirizzo or "-"),
+                    ("Note", target.note or "-"),
+                    ("Saldo proprio", format_currency(target.saldo())),
+                    ("Saldo complessivo", format_currency(target.totale_saldo())),
+                ]
+                child_table = (
+                    [
+                        "Palazzina",
+                        "Appartamenti",
+                        "Saldo proprio",
+                        "Saldo complessivo",
                     ],
-                    child_table=(
+                    [
                         [
-                            "Palazzina",
-                            "Appartamenti",
-                            "Saldo proprio",
-                            "Saldo complessivo",
-                        ],
-                        [
-                            [
-                                palazzina.nome,
-                                str(len(palazzina.appartamenti)),
-                                format_currency(palazzina.saldo()),
-                                format_currency(palazzina.totale_saldo()),
-                            ]
-                            for palazzina in target.palazzine
-                        ],
-                    ),
-                    movement_rows=[
-                        [
-                            movimento.data_movimento,
-                            movimento.tipo,
-                            movimento.descrizione,
-                            format_currency(movimento.importo),
+                            palazzina.nome,
+                            str(len(palazzina.appartamenti)),
+                            format_currency(palazzina.saldo()),
+                            format_currency(palazzina.totale_saldo()),
                         ]
-                        for movimento in target.movimenti
+                        for palazzina in target.palazzine
                     ],
-                    footer_text=f"{location_from_address(target.indirizzo)}, {format_document_date(date.today())}",
-                ),
-                filename=f"condominio_{slugify_filename(target.nome)}.pdf",
-            )
+                )
+                movement_rows = [
+                    [
+                        movimento.data_movimento,
+                        movimento.tipo,
+                        movimento.descrizione,
+                        format_currency(movimento.importo),
+                    ]
+                    for movimento in target.movimenti
+                ]
+                slug_name = slugify_filename(target.nome)
+                open_export_dialog(
+                    title=export_title,
+                    exports=[
+                        {
+                            "label": "Scarica PDF",
+                            "data": build_component_pdf(
+                                title=export_title,
+                                info_rows=info_rows,
+                                child_table=child_table,
+                                movement_rows=movement_rows,
+                                footer_text=footer_text,
+                            ),
+                            "filename": f"condominio_{slug_name}.pdf",
+                            "mime": "application/pdf",
+                        },
+                        {
+                            "label": "Scarica Word",
+                            "data": build_component_word(
+                                title=export_title,
+                                info_rows=info_rows,
+                                child_table=child_table,
+                                movement_rows=movement_rows,
+                                footer_text=footer_text,
+                            ),
+                            "filename": f"condominio_{slug_name}.docx",
+                            "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        },
+                        {
+                            "label": "Scarica Excel",
+                            "data": build_component_excel(
+                                title=export_title,
+                                info_rows=info_rows,
+                                child_table=child_table,
+                                movement_rows=movement_rows,
+                                footer_text=footer_text,
+                            ),
+                            "filename": f"condominio_{slug_name}.xlsx",
+                            "mime": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        },
+                    ],
+                )
         st.caption(
             "L'eliminazione rimuove anche palazzine, appartamenti e rendiconti collegati."
         )
@@ -1103,46 +1315,94 @@ def render_palazzine_tab(archivio: ArchivioCondomini) -> None:
             ):
                 open_delete_palazzina_dialog(archivio, condominio, target_name)
         with col3:
-            render_export_button(
-                label="Esporta palazzina",
-                pdf_bytes=build_component_pdf(
-                    title=f"Palazzina {target.nome}",
-                    info_rows=[
-                        ("Condominio", condominio.nome),
-                        ("Nome", target.nome),
-                        ("Note", target.note or "-"),
-                        ("Saldo proprio", format_currency(target.saldo())),
-                        ("Saldo complessivo", format_currency(target.totale_saldo())),
-                    ],
-                    child_table=(
-                        ["Codice", "Interno", "Piano", "Proprietario", "Saldo proprio"],
+            if st.button(
+                "Esporta palazzina",
+                use_container_width=True,
+                key="export_palazzina_button",
+            ):
+                export_title = f"Palazzina {target.nome}"
+                footer_text = (
+                    f"{location_from_address(condominio.indirizzo)}, "
+                    f"{format_document_date(date.today())}"
+                )
+                info_rows = [
+                    ("Condominio", condominio.nome),
+                    ("Nome", target.nome),
+                    ("Note", target.note or "-"),
+                    ("Saldo proprio", format_currency(target.saldo())),
+                    ("Saldo complessivo", format_currency(target.totale_saldo())),
+                ]
+                child_table = (
+                    ["Codice", "Interno", "Piano", "Proprietario", "Saldo proprio"],
+                    [
                         [
-                            [
-                                appartamento.codice,
-                                appartamento.interno,
-                                appartamento.piano,
-                                appartamento.proprietario.nome_completo,
-                                format_currency(appartamento.saldo()),
-                            ]
-                            for appartamento in target.appartamenti
-                        ],
-                    ),
-                    movement_rows=[
-                        [
-                            movimento.data_movimento,
-                            movimento.tipo,
-                            movimento.descrizione,
-                            format_currency(movimento.importo),
+                            appartamento.codice,
+                            appartamento.interno,
+                            appartamento.piano,
+                            appartamento.proprietario.nome_completo,
+                            format_currency(appartamento.saldo()),
                         ]
-                        for movimento in target.movimenti
+                        for appartamento in target.appartamenti
                     ],
-                    footer_text=f"{location_from_address(condominio.indirizzo)}, {format_document_date(date.today())}",
-                ),
-                filename=(
-                    f"palazzina_{slugify_filename(condominio.nome)}_"
-                    f"{slugify_filename(target.nome)}.pdf"
-                ),
-            )
+                )
+                movement_rows = [
+                    [
+                        movimento.data_movimento,
+                        movimento.tipo,
+                        movimento.descrizione,
+                        format_currency(movimento.importo),
+                    ]
+                    for movimento in target.movimenti
+                ]
+                slug_condominio = slugify_filename(condominio.nome)
+                slug_palazzina = slugify_filename(target.nome)
+                open_export_dialog(
+                    title=export_title,
+                    exports=[
+                        {
+                            "label": "Scarica PDF",
+                            "data": build_component_pdf(
+                                title=export_title,
+                                info_rows=info_rows,
+                                child_table=child_table,
+                                movement_rows=movement_rows,
+                                footer_text=footer_text,
+                            ),
+                            "filename": (
+                                f"palazzina_{slug_condominio}_{slug_palazzina}.pdf"
+                            ),
+                            "mime": "application/pdf",
+                        },
+                        {
+                            "label": "Scarica Word",
+                            "data": build_component_word(
+                                title=export_title,
+                                info_rows=info_rows,
+                                child_table=child_table,
+                                movement_rows=movement_rows,
+                                footer_text=footer_text,
+                            ),
+                            "filename": (
+                                f"palazzina_{slug_condominio}_{slug_palazzina}.docx"
+                            ),
+                            "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        },
+                        {
+                            "label": "Scarica Excel",
+                            "data": build_component_excel(
+                                title=export_title,
+                                info_rows=info_rows,
+                                child_table=child_table,
+                                movement_rows=movement_rows,
+                                footer_text=footer_text,
+                            ),
+                            "filename": (
+                                f"palazzina_{slug_condominio}_{slug_palazzina}.xlsx"
+                            ),
+                            "mime": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        },
+                    ],
+                )
         st.caption(
             "L'eliminazione rimuove anche gli appartamenti e i rendiconti della palazzina."
         )
@@ -1226,72 +1486,118 @@ def render_appartamenti_tab(archivio: ArchivioCondomini) -> None:
             ):
                 open_delete_appartamento_dialog(archivio, palazzina, target.codice)
         with col3:
-            render_export_button(
-                label="Esporta appartamento",
-                pdf_bytes=build_component_pdf(
-                    title=f"Appartamento {target.codice}",
-                    info_rows=[
-                        ("Condominio", condominio.nome),
-                        ("Palazzina", palazzina.nome),
-                        ("Codice", target.codice),
-                        ("Interno", target.interno),
-                        ("Piano", target.piano),
-                        ("Superficie", f"{target.superficie_mq:.2f} mq"),
-                        ("Millesimi", f"{target.millesimi:.2f}"),
-                        ("Proprietario", target.proprietario.nome_completo),
-                        ("Telefono proprietario", target.proprietario.telefono or "-"),
-                        ("Email proprietario", target.proprietario.email or "-"),
+            if st.button(
+                "Esporta appartamento",
+                use_container_width=True,
+                key="export_appartamento_button",
+            ):
+                export_title = f"Appartamento {target.codice}"
+                footer_text = (
+                    f"{location_from_address(condominio.indirizzo)}, "
+                    f"{format_document_date(date.today())}"
+                )
+                info_rows = [
+                    ("Condominio", condominio.nome),
+                    ("Palazzina", palazzina.nome),
+                    ("Codice", target.codice),
+                    ("Interno", target.interno),
+                    ("Piano", target.piano),
+                    ("Superficie", f"{target.superficie_mq:.2f} mq"),
+                    ("Millesimi", f"{target.millesimi:.2f}"),
+                    ("Proprietario", target.proprietario.nome_completo),
+                    ("Telefono proprietario", target.proprietario.telefono or "-"),
+                    ("Email proprietario", target.proprietario.email or "-"),
+                    (
+                        "Codice fiscale proprietario",
+                        target.proprietario.codice_fiscale or "-",
+                    ),
+                    (
+                        "Occupante",
+                        target.occupante.nome_completo if target.occupante else "-",
+                    ),
+                    (
+                        "Telefono occupante",
                         (
-                            "Codice fiscale proprietario",
-                            target.proprietario.codice_fiscale or "-",
+                            target.occupante.telefono
+                            if target.occupante and target.occupante.telefono
+                            else "-"
                         ),
+                    ),
+                    (
+                        "Email occupante",
                         (
-                            "Occupante",
-                            target.occupante.nome_completo if target.occupante else "-",
+                            target.occupante.email
+                            if target.occupante and target.occupante.email
+                            else "-"
                         ),
+                    ),
+                    (
+                        "Codice fiscale occupante",
                         (
-                            "Telefono occupante",
-                            (
-                                target.occupante.telefono
-                                if target.occupante and target.occupante.telefono
-                                else "-"
+                            target.occupante.codice_fiscale
+                            if target.occupante and target.occupante.codice_fiscale
+                            else "-"
+                        ),
+                    ),
+                    ("Note", target.note or "-"),
+                    ("Saldo proprio", format_currency(target.saldo())),
+                ]
+                movement_rows = [
+                    [
+                        movimento.data_movimento,
+                        movimento.tipo,
+                        movimento.descrizione,
+                        format_currency(movimento.importo),
+                    ]
+                    for movimento in target.movimenti
+                ]
+                slug_condominio = slugify_filename(condominio.nome)
+                slug_palazzina = slugify_filename(palazzina.nome)
+                slug_appartamento = slugify_filename(target.codice)
+                open_export_dialog(
+                    title=export_title,
+                    exports=[
+                        {
+                            "label": "Scarica PDF",
+                            "data": build_component_pdf(
+                                title=export_title,
+                                info_rows=info_rows,
+                                movement_rows=movement_rows,
+                                footer_text=footer_text,
                             ),
-                        ),
-                        (
-                            "Email occupante",
-                            (
-                                target.occupante.email
-                                if target.occupante and target.occupante.email
-                                else "-"
+                            "filename": (
+                                f"appartamento_{slug_condominio}_{slug_palazzina}_{slug_appartamento}.pdf"
                             ),
-                        ),
-                        (
-                            "Codice fiscale occupante",
-                            (
-                                target.occupante.codice_fiscale
-                                if target.occupante and target.occupante.codice_fiscale
-                                else "-"
+                            "mime": "application/pdf",
+                        },
+                        {
+                            "label": "Scarica Word",
+                            "data": build_component_word(
+                                title=export_title,
+                                info_rows=info_rows,
+                                movement_rows=movement_rows,
+                                footer_text=footer_text,
                             ),
-                        ),
-                        ("Note", target.note or "-"),
-                        ("Saldo proprio", format_currency(target.saldo())),
+                            "filename": (
+                                f"appartamento_{slug_condominio}_{slug_palazzina}_{slug_appartamento}.docx"
+                            ),
+                            "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        },
+                        {
+                            "label": "Scarica Excel",
+                            "data": build_component_excel(
+                                title=export_title,
+                                info_rows=info_rows,
+                                movement_rows=movement_rows,
+                                footer_text=footer_text,
+                            ),
+                            "filename": (
+                                f"appartamento_{slug_condominio}_{slug_palazzina}_{slug_appartamento}.xlsx"
+                            ),
+                            "mime": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        },
                     ],
-                    movement_rows=[
-                        [
-                            movimento.data_movimento,
-                            movimento.tipo,
-                            movimento.descrizione,
-                            format_currency(movimento.importo),
-                        ]
-                        for movimento in target.movimenti
-                    ],
-                    footer_text=f"{location_from_address(condominio.indirizzo)}, {format_document_date(date.today())}",
-                ),
-                filename=(
-                    f"appartamento_{slugify_filename(condominio.nome)}_"
-                    f"{slugify_filename(palazzina.nome)}_{slugify_filename(target.codice)}.pdf"
-                ),
-            )
+                )
         st.caption("L'eliminazione rimuove anche il rendiconto dell'appartamento.")
 
     rows = [
