@@ -60,7 +60,7 @@ class Appartamento(RendicontoMixin):
     piano: str = ""
     superficie_mq: float = 0.0
     millesimi: float = 0.0
-    proprietario: str = ""
+    proprietario: Condomino = field(default_factory=lambda: Condomino(nome="", cognome=""))
     occupante: Condomino | None = None
     note: str = ""
 
@@ -99,19 +99,25 @@ class Palazzina(RendicontoMixin):
         piano: str,
         superficie_mq: float,
         millesimi: float,
-        proprietario: str,
+        proprietario: Condomino,
         note: str,
     ) -> None:
         codice = codice.strip()
         altro = self.trova_appartamento(codice)
         if altro and altro is not appartamento_corrente:
             raise ValueError(f"Esiste gia un appartamento con codice {codice}.")
+        proprietario_precedente = appartamento_corrente.proprietario
+        occupante_allineato_al_proprietario = (
+            appartamento_corrente.occupante == proprietario_precedente
+        )
         appartamento_corrente.codice = codice
         appartamento_corrente.interno = interno.strip()
         appartamento_corrente.piano = piano.strip()
         appartamento_corrente.superficie_mq = round(superficie_mq, 2)
         appartamento_corrente.millesimi = round(millesimi, 2)
-        appartamento_corrente.proprietario = proprietario.strip()
+        appartamento_corrente.proprietario = proprietario
+        if occupante_allineato_al_proprietario:
+            appartamento_corrente.occupante = proprietario
         appartamento_corrente.note = note.strip()
 
     def totale_saldo(self) -> float:
@@ -241,15 +247,28 @@ def _condomino_from_dict(data: dict | None) -> Condomino | None:
     return Condomino(**data)
 
 
+def _proprietario_from_legacy(value: str | dict | None) -> Condomino:
+    if isinstance(value, dict):
+        return Condomino(**value)
+    if not value:
+        return Condomino(nome="", cognome="")
+    parti = str(value).strip().split(maxsplit=1)
+    nome = parti[0]
+    cognome = parti[1] if len(parti) > 1 else ""
+    return Condomino(nome=nome, cognome=cognome)
+
+
 def _appartamento_from_dict(data: dict) -> Appartamento:
+    proprietario = _proprietario_from_legacy(data.get("proprietario"))
+    occupante = _condomino_from_dict(data.get("occupante")) or proprietario
     return Appartamento(
         codice=data.get("codice", ""),
         interno=data.get("interno", ""),
         piano=data.get("piano", ""),
         superficie_mq=data.get("superficie_mq", 0.0),
         millesimi=data.get("millesimi", 0.0),
-        proprietario=data.get("proprietario", ""),
-        occupante=_condomino_from_dict(data.get("occupante")),
+        proprietario=proprietario,
+        occupante=occupante,
         note=data.get("note", ""),
         movimenti=_movimenti_from_list(data.get("movimenti")),
     )

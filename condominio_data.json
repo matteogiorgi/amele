@@ -3,42 +3,320 @@
     {
       "movimenti": [
         {
-          "descrizione": "spese giardino",
-          "importo": 1000.0,
+          "descrizione": "Assicurazione stabile",
+          "importo": 1850.0,
+          "tipo": "addebito",
+          "data_movimento": "2026-01-15"
+        },
+        {
+          "descrizione": "Versamento fondo cassa",
+          "importo": 2500.0,
           "tipo": "pagamento",
-          "data_movimento": "2026-04-09"
+          "data_movimento": "2026-02-10"
         }
       ],
-      "nome": "Condo2",
-      "indirizzo": "via Trieste 35",
+      "nome": "Residenza Magnolia",
+      "indirizzo": "Via dei Tigli 18, Milano",
       "palazzine": [
         {
-          "movimenti": [],
-          "nome": "pippo",
+          "movimenti": [
+            {
+              "descrizione": "Pulizia scale palazzina A",
+              "importo": 320.0,
+              "tipo": "addebito",
+              "data_movimento": "2026-03-02"
+            }
+          ],
+          "nome": "Palazzina A",
+          "appartamenti": [
+            {
+              "movimenti": [
+                {
+                  "descrizione": "Rata condominiale gennaio",
+                  "importo": 280.0,
+                  "tipo": "addebito",
+                  "data_movimento": "2026-01-05"
+                },
+                {
+                  "descrizione": "Bonifico rata gennaio",
+                  "importo": 280.0,
+                  "tipo": "pagamento",
+                  "data_movimento": "2026-01-12"
+                }
+              ],
+              "codice": "A-01",
+              "interno": "1",
+              "piano": "1",
+              "superficie_mq": 82.5,
+              "millesimi": 95.0,
+              "proprietario": {
+                "nome": "Alessandro",
+                "cognome": "Riva",
+                "telefono": "3331001001",
+                "email": "alessandro.riva@example.com",
+                "codice_fiscale": "RVALSN82A01F205X"
+              },
+              "occupante": {
+                "nome": "Alessandro",
+                "cognome": "Riva",
+                "telefono": "3331001001",
+                "email": "alessandro.riva@example.com",
+                "codice_fiscale": "RVALSN82A01F205X"
+              },
+              "note": "Balcone lato cortile"
+            },
+            {
+              "movimenti": [
+                {
+                  "descrizione": "Rata condominiale febbraio",
+                  "importo": 310.0,
+                  "tipo": "addebito",
+                  "data_movimento": "2026-02-05"
+                }
+              ],
+              "codice": "A-02",
+              "interno": "2",
+              "piano": "1",
+              "superficie_mq": 91.0,
+              "millesimi": 107.0,
+              "proprietario": {
+                "nome": "Giulia",
+                "cognome": "Serra",
+                "telefono": "3331001002",
+                "email": "giulia.serra@example.com",
+                "codice_fiscale": "SRRGLI85B41F205Y"
+              },
+              "occupante": {
+                "nome": "Marco",
+                "cognome": "Leoni",
+                "telefono": "3331001099",
+                "email": "marco.leoni@example.com",
+                "codice_fiscale": "LNEMRC88L22F205Z"
+              },
+              "note": "Appartamento affittato"
+            },
+            {
+              "movimenti": [
+                {
+                  "descrizione": "Rata condominiale marzo",
+                  "importo": 260.0,
+                  "tipo": "addebito",
+                  "data_movimento": "2026-03-05"
+                },
+                {
+                  "descrizione": "Pagamento parziale",
+                  "importo": 150.0,
+                  "tipo": "pagamento",
+                  "data_movimento": "2026-03-20"
+                }
+              ],
+              "codice": "A-03",
+              "interno": "6",
+              "piano": "3",
+              "superficie_mq": 75.0,
+              "millesimi": 88.0,
+              "proprietario": {
+                "nome": "Paolo",
+                "cognome": "Mancini",
+                "telefono": "3331001003",
+                "email": "paolo.mancini@example.com",
+                "codice_fiscale": "MNCPLA79C10F205P"
+              },
+              "occupante": {
+                "nome": "Paolo",
+                "cognome": "Mancini",
+                "telefono": "3331001003",
+                "email": "paolo.mancini@example.com",
+                "codice_fiscale": "MNCPLA79C10F205P"
+              },
+              "note": ""
+            }
+          ],
+          "note": "Scala principale con ascensore"
+        },
+        {
+          "movimenti": [
+            {
+              "descrizione": "Manutenzione cancello box",
+              "importo": 540.0,
+              "tipo": "addebito",
+              "data_movimento": "2026-02-18"
+            },
+            {
+              "descrizione": "Rimborso assicurazione",
+              "importo": 120.0,
+              "tipo": "pagamento",
+              "data_movimento": "2026-03-01"
+            }
+          ],
+          "nome": "Palazzina B",
           "appartamenti": [
             {
               "movimenti": [],
-              "codice": "1231245",
-              "interno": "01",
-              "piano": "1",
-              "superficie_mq": 100.0,
-              "millesimi": 200.0,
-              "proprietario": "Mario Rossi",
-              "occupante": null,
-              "note": "qlkjf klqwjrlkqwj"
+              "codice": "B-01",
+              "interno": "3",
+              "piano": "2",
+              "superficie_mq": 98.0,
+              "millesimi": 113.0,
+              "proprietario": {
+                "nome": "Elena",
+                "cognome": "Ferri",
+                "telefono": "3331001004",
+                "email": "elena.ferri@example.com",
+                "codice_fiscale": "FRRLNE90D55F205R"
+              },
+              "occupante": {
+                "nome": "Elena",
+                "cognome": "Ferri",
+                "telefono": "3331001004",
+                "email": "elena.ferri@example.com",
+                "codice_fiscale": "FRRLNE90D55F205R"
+              },
+              "note": "Cantina inclusa"
+            },
+            {
+              "movimenti": [
+                {
+                  "descrizione": "Rata straordinaria facciata",
+                  "importo": 450.0,
+                  "tipo": "addebito",
+                  "data_movimento": "2026-03-15"
+                }
+              ],
+              "codice": "B-02",
+              "interno": "4",
+              "piano": "2",
+              "superficie_mq": 102.0,
+              "millesimi": 118.0,
+              "proprietario": {
+                "nome": "Luca",
+                "cognome": "Breda",
+                "telefono": "3331001005",
+                "email": "luca.breda@example.com",
+                "codice_fiscale": "BRDLCU77E14F205K"
+              },
+              "occupante": {
+                "nome": "Luca",
+                "cognome": "Breda",
+                "telefono": "3331001005",
+                "email": "luca.breda@example.com",
+                "codice_fiscale": "BRDLCU77E14F205K"
+              },
+              "note": ""
             }
           ],
-          "note": "alalalallallala"
+          "note": "Accesso dal giardino interno"
         }
       ],
-      "note": "pippo"
+      "note": "Condominio con area verde comune"
+    },
+    {
+      "movimenti": [
+        {
+          "descrizione": "Spese amministratore trimestre",
+          "importo": 900.0,
+          "tipo": "addebito",
+          "data_movimento": "2026-01-20"
+        }
+      ],
+      "nome": "Corte Naviglio",
+      "indirizzo": "Via Alzaia 7, Pavia",
+      "palazzine": [
+        {
+          "movimenti": [
+            {
+              "descrizione": "Pulizia cortile",
+              "importo": 180.0,
+              "tipo": "addebito",
+              "data_movimento": "2026-02-03"
+            }
+          ],
+          "nome": "Edificio Centrale",
+          "appartamenti": [
+            {
+              "movimenti": [
+                {
+                  "descrizione": "Rata annuale assicurazione",
+                  "importo": 390.0,
+                  "tipo": "addebito",
+                  "data_movimento": "2026-01-10"
+                },
+                {
+                  "descrizione": "Pagamento assicurazione",
+                  "importo": 390.0,
+                  "tipo": "pagamento",
+                  "data_movimento": "2026-01-25"
+                }
+              ],
+              "codice": "C-01",
+              "interno": "A1",
+              "piano": "Terra",
+              "superficie_mq": 68.0,
+              "millesimi": 79.0,
+              "proprietario": {
+                "nome": "Sara",
+                "cognome": "Fontana",
+                "telefono": "3332002001",
+                "email": "sara.fontana@example.com",
+                "codice_fiscale": "FNTSRA91F50G388L"
+              },
+              "occupante": {
+                "nome": "Sara",
+                "cognome": "Fontana",
+                "telefono": "3332002001",
+                "email": "sara.fontana@example.com",
+                "codice_fiscale": "FNTSRA91F50G388L"
+              },
+              "note": "Ingresso indipendente"
+            },
+            {
+              "movimenti": [
+                {
+                  "descrizione": "Rata riscaldamento",
+                  "importo": 220.0,
+                  "tipo": "addebito",
+                  "data_movimento": "2026-02-12"
+                },
+                {
+                  "descrizione": "Pagamento rata riscaldamento",
+                  "importo": 220.0,
+                  "tipo": "pagamento",
+                  "data_movimento": "2026-02-18"
+                }
+              ],
+              "codice": "C-02",
+              "interno": "B2",
+              "piano": "1",
+              "superficie_mq": 84.0,
+              "millesimi": 96.0,
+              "proprietario": {
+                "nome": "Davide",
+                "cognome": "Pini",
+                "telefono": "3332002002",
+                "email": "davide.pini@example.com",
+                "codice_fiscale": "PNIDVD83G12G388M"
+              },
+              "occupante": {
+                "nome": "Davide",
+                "cognome": "Pini",
+                "telefono": "3332002002",
+                "email": "davide.pini@example.com",
+                "codice_fiscale": "PNIDVD83G12G388M"
+              },
+              "note": ""
+            }
+          ],
+          "note": "Piccolo stabile di corte"
+        }
+      ],
+      "note": "Spazi comuni ridotti, facile da testare"
     },
     {
       "movimenti": [],
-      "nome": "Condo-01",
-      "indirizzo": "via Barabba 2",
+      "nome": "Le Terrazze",
+      "indirizzo": "Piazza Aurora 12, Bergamo",
       "palazzine": [],
-      "note": "lalalalla"
+      "note": "Condominio vuoto di esempio per testare creazione da zero"
     }
   ]
 }

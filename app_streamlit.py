@@ -84,19 +84,25 @@ def load_styles() -> None:
                 font-weight: 700;
                 margin-bottom: 0.55rem;
             }
-            .section-nav-active {
-                display: block;
-                width: 100%;
-                box-sizing: border-box;
-                padding: 0.55rem 1rem;
-                border-radius: 0.75rem;
+            button:disabled {
+                opacity: 1 !important;
+                cursor: default !important;
+            }
+            button[kind="secondary"]:disabled {
+                background: linear-gradient(135deg, #163047 0%, #29506f 100%) !important;
+                color: white !important;
+                border: 1px solid rgba(22, 48, 71, 0.15) !important;
+            }
+            div[data-baseweb="select"] > div {
                 background: linear-gradient(135deg, #163047 0%, #29506f 100%);
+                border-color: rgba(22, 48, 71, 0.15);
                 color: white;
-                font-weight: 700;
-                line-height: 1.6;
-                box-shadow: none;
-                border: 1px solid rgba(22, 48, 71, 0.15);
-                text-align: center;
+            }
+            div[data-baseweb="select"] span {
+                color: white;
+            }
+            div[data-baseweb="select"] svg {
+                fill: white;
             }
         </style>
         """,
@@ -172,6 +178,27 @@ def appartamento_options(palazzina: Palazzina) -> dict[str, Appartamento]:
         f"{appartamento.codice} · int. {appartamento.interno} · piano {appartamento.piano}": appartamento
         for appartamento in ordered
     }
+
+
+def condomino_compilato(nome: str, cognome: str) -> bool:
+    return bool(nome.strip() and cognome.strip())
+
+
+def build_condomino(
+    *,
+    nome: str,
+    cognome: str,
+    telefono: str = "",
+    email: str = "",
+    codice_fiscale: str = "",
+) -> Condomino:
+    return Condomino(
+        nome=nome.strip(),
+        cognome=cognome.strip(),
+        telefono=telefono.strip(),
+        email=email.strip(),
+        codice_fiscale=codice_fiscale.strip(),
+    )
 
 
 def persistent_selectbox(
@@ -255,20 +282,16 @@ def render_section_nav() -> str:
     cols = st.columns(len(sections))
     for col, section in zip(cols, sections):
         with col:
-            if section == active_section:
-                st.markdown(
-                    f'<div class="section-nav-active">{section}</div>',
-                    unsafe_allow_html=True,
-                )
-            else:
-                if st.button(
-                    section,
-                    key=f"nav_{section}",
-                    use_container_width=True,
-                    type="secondary",
-                ):
-                    st.session_state.active_section = section
-                    st.rerun()
+            clicked = st.button(
+                section,
+                key=f"nav_{section}",
+                use_container_width=True,
+                type="secondary",
+                disabled=(section == active_section),
+            )
+            if clicked:
+                st.session_state.active_section = section
+                st.rerun()
     return active_section
 
 
@@ -278,15 +301,18 @@ def render_rendiconto_panel(
     target,
     title: str,
     active_section: str,
-    saldo_totale_label: str | None = None,
-    saldo_totale_valore: float | None = None,
+    saldo_complessivo_label: str | None = None,
+    saldo_complessivo_valore: float | None = None,
 ) -> None:
     col1, col2 = st.columns([1.1, 1.2])
     with col1:
         st.write(f"**{title}**")
-        st.metric("Saldo corrente", format_currency(target.saldo()))
-        if saldo_totale_label and saldo_totale_valore is not None:
-            st.metric(saldo_totale_label, format_currency(saldo_totale_valore))
+        st.metric("Saldo proprio", format_currency(target.saldo()))
+        if saldo_complessivo_label and saldo_complessivo_valore is not None:
+            st.metric(
+                saldo_complessivo_label,
+                format_currency(saldo_complessivo_valore),
+            )
         if st.button(
             "Nuovo movimento",
             key=f"open_new_movement_{active_section}",
@@ -409,38 +435,51 @@ def open_add_appartamento_dialog(
             "Superficie mq", min_value=0.0, step=1.0, format="%.2f"
         )
         millesimi = c5.number_input("Millesimi", min_value=0.0, step=1.0, format="%.2f")
-        proprietario = c6.text_input("Proprietario")
+        prop_nome = c6.text_input("Nome proprietario")
+        prop_cols = st.columns(3)
+        prop_cognome = prop_cols[0].text_input("Cognome proprietario")
+        prop_tel = prop_cols[1].text_input("Telefono proprietario")
+        prop_email = prop_cols[2].text_input("Email proprietario")
+        prop_cf = st.text_input("Codice fiscale proprietario")
         note = st.text_area("Note", height=100)
-        st.caption("Residente opzionale")
-        include_occupante = st.checkbox("Inserisci subito il residente")
+        st.caption(
+            "Residente opzionale. Se lasci nome e cognome vuoti, verrà usato automaticamente il proprietario."
+        )
         o1, o2, o3 = st.columns(3)
-        occ_nome = o1.text_input("Nome", disabled=not include_occupante)
-        occ_cognome = o2.text_input("Cognome", disabled=not include_occupante)
-        occ_tel = o3.text_input("Telefono", disabled=not include_occupante)
+        occ_nome = o1.text_input("Nome residente")
+        occ_cognome = o2.text_input("Cognome residente")
+        occ_tel = o3.text_input("Telefono residente")
         o4, o5 = st.columns(2)
-        occ_email = o4.text_input("Email", disabled=not include_occupante)
-        occ_cf = o5.text_input("Codice fiscale", disabled=not include_occupante)
+        occ_email = o4.text_input("Email residente")
+        occ_cf = o5.text_input("Codice fiscale residente")
         submitted = st.form_submit_button("Conferma aggiunta", use_container_width=True)
     if submitted:
         if (
             not codice.strip()
             or not interno.strip()
             or not piano.strip()
-            or not proprietario.strip()
+            or not condomino_compilato(prop_nome, prop_cognome)
         ):
-            st.error("Codice, interno, piano e proprietario sono obbligatori.")
+            st.error("Codice, interno, piano, nome e cognome del proprietario sono obbligatori.")
         else:
-            occupante = None
-            if include_occupante:
-                if not occ_nome.strip() or not occ_cognome.strip():
-                    st.error("Nome e cognome del residente sono obbligatori.")
+            proprietario = build_condomino(
+                nome=prop_nome,
+                cognome=prop_cognome,
+                telefono=prop_tel,
+                email=prop_email,
+                codice_fiscale=prop_cf,
+            )
+            occupante = proprietario
+            if occ_nome.strip() or occ_cognome.strip():
+                if not condomino_compilato(occ_nome, occ_cognome):
+                    st.error("Se specifichi il residente, nome e cognome sono obbligatori.")
                     return
-                occupante = Condomino(
-                    nome=occ_nome.strip(),
-                    cognome=occ_cognome.strip(),
-                    telefono=occ_tel.strip(),
-                    email=occ_email.strip(),
-                    codice_fiscale=occ_cf.strip(),
+                occupante = build_condomino(
+                    nome=occ_nome,
+                    cognome=occ_cognome,
+                    telefono=occ_tel,
+                    email=occ_email,
+                    codice_fiscale=occ_cf,
                 )
             try:
                 palazzina.aggiungi_appartamento(
@@ -450,7 +489,7 @@ def open_add_appartamento_dialog(
                         piano=piano.strip(),
                         superficie_mq=round(superficie, 2),
                         millesimi=round(millesimi, 2),
-                        proprietario=proprietario.strip(),
+                        proprietario=proprietario,
                         occupante=occupante,
                         note=note.strip(),
                     )
@@ -534,18 +573,69 @@ def open_edit_appartamento_dialog(
             format="%.2f",
             value=float(target.millesimi),
         )
-        proprietario = c6.text_input("Proprietario", value=target.proprietario)
+        prop_nome = c6.text_input("Nome proprietario", value=target.proprietario.nome)
+        prop_cols = st.columns(3)
+        prop_cognome = prop_cols[0].text_input(
+            "Cognome proprietario", value=target.proprietario.cognome
+        )
+        prop_tel = prop_cols[1].text_input(
+            "Telefono proprietario", value=target.proprietario.telefono
+        )
+        prop_email = prop_cols[2].text_input(
+            "Email proprietario", value=target.proprietario.email
+        )
+        prop_cf = st.text_input(
+            "Codice fiscale proprietario", value=target.proprietario.codice_fiscale
+        )
         note = st.text_area("Note", value=target.note, height=100)
+        st.caption(
+            "Residente opzionale. Se lasci nome e cognome vuoti, verrà usato automaticamente il proprietario."
+        )
+        occupante_attuale = target.occupante
+        occupante_uguale_al_proprietario = (
+            occupante_attuale == target.proprietario if occupante_attuale else False
+        )
+        occ_default_nome = "" if occupante_uguale_al_proprietario else (occupante_attuale.nome if occupante_attuale else "")
+        occ_default_cognome = "" if occupante_uguale_al_proprietario else (occupante_attuale.cognome if occupante_attuale else "")
+        occ_default_tel = "" if occupante_uguale_al_proprietario else (occupante_attuale.telefono if occupante_attuale else "")
+        occ_default_email = "" if occupante_uguale_al_proprietario else (occupante_attuale.email if occupante_attuale else "")
+        occ_default_cf = "" if occupante_uguale_al_proprietario else (occupante_attuale.codice_fiscale if occupante_attuale else "")
+        o1, o2, o3 = st.columns(3)
+        occ_nome = o1.text_input("Nome residente", value=occ_default_nome)
+        occ_cognome = o2.text_input("Cognome residente", value=occ_default_cognome)
+        occ_tel = o3.text_input("Telefono residente", value=occ_default_tel)
+        o4, o5 = st.columns(2)
+        occ_email = o4.text_input("Email residente", value=occ_default_email)
+        occ_cf = o5.text_input("Codice fiscale residente", value=occ_default_cf)
         submitted = st.form_submit_button("Salva modifiche", use_container_width=True)
     if submitted:
         if (
             not codice.strip()
             or not interno.strip()
             or not piano.strip()
-            or not proprietario.strip()
+            or not condomino_compilato(prop_nome, prop_cognome)
         ):
-            st.error("Codice, interno, piano e proprietario sono obbligatori.")
+            st.error("Codice, interno, piano, nome e cognome del proprietario sono obbligatori.")
         else:
+            proprietario = build_condomino(
+                nome=prop_nome,
+                cognome=prop_cognome,
+                telefono=prop_tel,
+                email=prop_email,
+                codice_fiscale=prop_cf,
+            )
+            occupante = proprietario
+            if occ_nome.strip() or occ_cognome.strip():
+                if not condomino_compilato(occ_nome, occ_cognome):
+                    st.error("Se specifichi il residente, nome e cognome sono obbligatori.")
+                    return
+                occupante = build_condomino(
+                    nome=occ_nome,
+                    cognome=occ_cognome,
+                    telefono=occ_tel,
+                    email=occ_email,
+                    codice_fiscale=occ_cf,
+                )
             try:
                 palazzina.aggiorna_appartamento(
                     target,
@@ -557,6 +647,7 @@ def open_edit_appartamento_dialog(
                     proprietario=proprietario,
                     note=note,
                 )
+                target.occupante = occupante
             except ValueError as error:
                 st.error(str(error))
             else:
@@ -580,12 +671,13 @@ def open_delete_condominio_dialog(
             archivio.rimuovi_condominio(nome_condominio)
             save_and_refresh(archivio, "Condominio rimosso.", "Condominio")
     with col2:
-        st.button(
+        if st.button(
             "Annulla",
             key="cancel_delete_condominio",
             use_container_width=True,
             type="secondary",
-        )
+        ):
+            st.rerun()
 
 
 @st.dialog("Conferma eliminazione", width="large")
@@ -607,12 +699,13 @@ def open_delete_palazzina_dialog(
             condominio.rimuovi_palazzina(nome_palazzina)
             save_and_refresh(archivio, "Palazzina rimossa.", "Palazzine")
     with col2:
-        st.button(
+        if st.button(
             "Annulla",
             key="cancel_delete_palazzina",
             use_container_width=True,
             type="secondary",
-        )
+        ):
+            st.rerun()
 
 
 @st.dialog("Conferma eliminazione", width="large")
@@ -634,12 +727,13 @@ def open_delete_appartamento_dialog(
             palazzina.rimuovi_appartamento(codice_appartamento)
             save_and_refresh(archivio, "Appartamento rimosso.", "Appartamenti")
     with col2:
-        st.button(
+        if st.button(
             "Annulla",
             key="cancel_delete_appartamento",
             use_container_width=True,
             type="secondary",
-        )
+        ):
+            st.rerun()
 
 
 def render_condominio_tab(archivio: ArchivioCondomini) -> None:
@@ -690,8 +784,8 @@ def render_condominio_tab(archivio: ArchivioCondomini) -> None:
                 "Indirizzo": condominio.indirizzo or "-",
                 "Palazzine": len(condominio.palazzine),
                 "Appartamenti": condominio.totale_appartamenti(),
-                "Saldo condominio": format_currency(condominio.saldo()),
-                "Saldo totale": format_currency(condominio.totale_saldo()),
+                "Saldo proprio": format_currency(condominio.saldo()),
+                "Saldo complessivo": format_currency(condominio.totale_saldo()),
             }
         )
     st.dataframe(rows, use_container_width=True, hide_index=True)
@@ -700,8 +794,8 @@ def render_condominio_tab(archivio: ArchivioCondomini) -> None:
         target=target,
         title=f"Rendiconto del condominio {target.nome}",
         active_section="Condominio",
-        saldo_totale_label="Saldo totale con livelli figli",
-        saldo_totale_valore=target.totale_saldo(),
+        saldo_complessivo_label="Saldo complessivo con livelli figli",
+        saldo_complessivo_valore=target.totale_saldo(),
     )
 
 
@@ -757,9 +851,21 @@ def render_palazzine_tab(archivio: ArchivioCondomini) -> None:
             target=target,
             title=f"Rendiconto della palazzina {target.nome}",
             active_section="Palazzine",
-            saldo_totale_label="Saldo totale con appartamenti",
-            saldo_totale_valore=target.totale_saldo(),
+            saldo_complessivo_label="Saldo complessivo con appartamenti",
+            saldo_complessivo_valore=target.totale_saldo(),
         )
+
+    rows = [
+        {
+            "Palazzina": palazzina.nome,
+            "Appartamenti": len(palazzina.appartamenti),
+            "Saldo proprio": format_currency(palazzina.saldo()),
+            "Saldo complessivo": format_currency(palazzina.totale_saldo()),
+        }
+        for palazzina in condominio.palazzine
+    ]
+    if rows:
+        st.dataframe(rows, use_container_width=True, hide_index=True)
 
 
 def render_appartamenti_tab(archivio: ArchivioCondomini) -> None:
@@ -826,8 +932,13 @@ def render_appartamenti_tab(archivio: ArchivioCondomini) -> None:
             "Codice": appartamento.codice,
             "Interno": appartamento.interno,
             "Piano": appartamento.piano,
-            "Proprietario": appartamento.proprietario,
-            "Saldo": format_currency(appartamento.saldo()),
+            "Proprietario": appartamento.proprietario.nome_completo,
+            "Occupante": (
+                appartamento.occupante.nome_completo
+                if appartamento.occupante
+                else "Non assegnato"
+            ),
+            "Saldo proprio": format_currency(appartamento.saldo()),
         }
         for appartamento in palazzina.appartamenti
     ]
