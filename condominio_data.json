@@ -130,6 +130,72 @@
                 "codice_fiscale": "MNCPLA79C10F205P"
               },
               "note": ""
+            },
+            {
+              "movimenti": [
+                {
+                  "descrizione": "Rata condominiale aprile",
+                  "importo": 295.0,
+                  "tipo": "addebito",
+                  "data_movimento": "2026-04-02"
+                },
+                {
+                  "descrizione": "Pagamento rata aprile",
+                  "importo": 295.0,
+                  "tipo": "pagamento",
+                  "data_movimento": "2026-04-05"
+                }
+              ],
+              "codice": "A-04",
+              "interno": "7",
+              "piano": "3",
+              "superficie_mq": 87.0,
+              "millesimi": 101.0,
+              "proprietario": {
+                "nome": "Silvia",
+                "cognome": "Marini",
+                "telefono": "3331001006",
+                "email": "silvia.marini@example.com",
+                "codice_fiscale": "MRNSLV84H45F205W"
+              },
+              "occupante": {
+                "nome": "Silvia",
+                "cognome": "Marini",
+                "telefono": "3331001006",
+                "email": "silvia.marini@example.com",
+                "codice_fiscale": "MRNSLV84H45F205W"
+              },
+              "note": "Vista sul giardino condominiale"
+            },
+            {
+              "movimenti": [
+                {
+                  "descrizione": "Contributo ascensore",
+                  "importo": 140.0,
+                  "tipo": "addebito",
+                  "data_movimento": "2026-03-28"
+                }
+              ],
+              "codice": "A-05",
+              "interno": "8",
+              "piano": "4",
+              "superficie_mq": 64.0,
+              "millesimi": 74.0,
+              "proprietario": {
+                "nome": "Francesco",
+                "cognome": "Villa",
+                "telefono": "3331001007",
+                "email": "francesco.villa@example.com",
+                "codice_fiscale": "VLLFNC92L18F205N"
+              },
+              "occupante": {
+                "nome": "Anna",
+                "cognome": "Villa",
+                "telefono": "3331001088",
+                "email": "anna.villa@example.com",
+                "codice_fiscale": "VLLNNA95T52F205Q"
+              },
+              "note": "Locato a familiare"
             }
           ],
           "note": "Scala principale con ascensore"
@@ -203,6 +269,78 @@
                 "codice_fiscale": "BRDLCU77E14F205K"
               },
               "note": ""
+            },
+            {
+              "movimenti": [
+                {
+                  "descrizione": "Rata condominiale marzo",
+                  "importo": 340.0,
+                  "tipo": "addebito",
+                  "data_movimento": "2026-03-06"
+                },
+                {
+                  "descrizione": "Pagamento rata marzo",
+                  "importo": 340.0,
+                  "tipo": "pagamento",
+                  "data_movimento": "2026-03-11"
+                }
+              ],
+              "codice": "B-03",
+              "interno": "5",
+              "piano": "2",
+              "superficie_mq": 89.5,
+              "millesimi": 104.0,
+              "proprietario": {
+                "nome": "Marta",
+                "cognome": "Neri",
+                "telefono": "3331001008",
+                "email": "marta.neri@example.com",
+                "codice_fiscale": "NREMRT87R49F205S"
+              },
+              "occupante": {
+                "nome": "Marta",
+                "cognome": "Neri",
+                "telefono": "3331001008",
+                "email": "marta.neri@example.com",
+                "codice_fiscale": "NREMRT87R49F205S"
+              },
+              "note": "Terrazzo ampio"
+            },
+            {
+              "movimenti": [
+                {
+                  "descrizione": "Contributo facciata",
+                  "importo": 470.0,
+                  "tipo": "addebito",
+                  "data_movimento": "2026-03-18"
+                },
+                {
+                  "descrizione": "Acconto facciata",
+                  "importo": 200.0,
+                  "tipo": "pagamento",
+                  "data_movimento": "2026-03-25"
+                }
+              ],
+              "codice": "B-04",
+              "interno": "9",
+              "piano": "4",
+              "superficie_mq": 110.0,
+              "millesimi": 126.0,
+              "proprietario": {
+                "nome": "Roberto",
+                "cognome": "Galli",
+                "telefono": "3331001009",
+                "email": "roberto.galli@example.com",
+                "codice_fiscale": "GLLRRT76M09F205U"
+              },
+              "occupante": {
+                "nome": "Roberto",
+                "cognome": "Galli",
+                "telefono": "3331001009",
+                "email": "roberto.galli@example.com",
+                "codice_fiscale": "GLLRRT76M09F205U"
+              },
+              "note": "Ultimo piano con doppia esposizione"
             }
           ],
           "note": "Accesso dal giardino interno"
@@ -254,14 +392,14 @@
               "superficie_mq": 68.0,
               "millesimi": 79.0,
               "proprietario": {
-                "nome": "Sara",
+                "nome": "Chiara",
                 "cognome": "Fontana",
                 "telefono": "3332002001",
                 "email": "sara.fontana@example.com",
                 "codice_fiscale": "FNTSRA91F50G388L"
               },
               "occupante": {
-                "nome": "Sara",
+                "nome": "Chiara",
                 "cognome": "Fontana",
                 "telefono": "3332002001",
                 "email": "sara.fontana@example.com",
@@ -304,6 +442,72 @@
                 "codice_fiscale": "PNIDVD83G12G388M"
               },
               "note": ""
+            },
+            {
+              "movimenti": [
+                {
+                  "descrizione": "Rata manutenzione tetto",
+                  "importo": 180.0,
+                  "tipo": "addebito",
+                  "data_movimento": "2026-03-03"
+                }
+              ],
+              "codice": "C-03",
+              "interno": "C3",
+              "piano": "1",
+              "superficie_mq": 77.0,
+              "millesimi": 89.0,
+              "proprietario": {
+                "nome": "Irene",
+                "cognome": "Moretti",
+                "telefono": "3332002003",
+                "email": "irene.moretti@example.com",
+                "codice_fiscale": "MRTRNI90S63G388H"
+              },
+              "occupante": {
+                "nome": "Irene",
+                "cognome": "Moretti",
+                "telefono": "3332002003",
+                "email": "irene.moretti@example.com",
+                "codice_fiscale": "MRTRNI90S63G388H"
+              },
+              "note": "Ristrutturato di recente"
+            },
+            {
+              "movimenti": [
+                {
+                  "descrizione": "Rata riscaldamento",
+                  "importo": 205.0,
+                  "tipo": "addebito",
+                  "data_movimento": "2026-02-14"
+                },
+                {
+                  "descrizione": "Saldo riscaldamento",
+                  "importo": 205.0,
+                  "tipo": "pagamento",
+                  "data_movimento": "2026-02-27"
+                }
+              ],
+              "codice": "C-04",
+              "interno": "D4",
+              "piano": "2",
+              "superficie_mq": 72.0,
+              "millesimi": 83.0,
+              "proprietario": {
+                "nome": "Stefano",
+                "cognome": "Orsi",
+                "telefono": "3332002004",
+                "email": "stefano.orsi@example.com",
+                "codice_fiscale": "RSSSFN81B27G388V"
+              },
+              "occupante": {
+                "nome": "Valentina",
+                "cognome": "Orsi",
+                "telefono": "3332002077",
+                "email": "valentina.orsi@example.com",
+                "codice_fiscale": "RSRVNT89P68G388D"
+              },
+              "note": "Locazione recente"
             }
           ],
           "note": "Piccolo stabile di corte"

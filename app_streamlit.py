@@ -1,8 +1,16 @@
 from __future__ import annotations
 
-from typing import Iterable
+from datetime import date
+from io import BytesIO
+import re
+from typing import Iterable, cast
 
 import streamlit as st
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import ParagraphStyle, PropertySet, getSampleStyleSheet
+from reportlab.lib.units import cm
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from condominio import (
     Appartamento,
@@ -121,13 +129,13 @@ def get_active_section() -> str:
     if pending_section:
         st.session_state.active_section = pending_section
     if "active_section" not in st.session_state:
-        st.session_state.active_section = "Condominio"
+        st.session_state.active_section = "Condomini"
     if st.session_state.active_section not in {
-        "Condominio",
+        "Condomini",
         "Palazzine",
         "Appartamenti",
     }:
-        st.session_state.active_section = "Condominio"
+        st.session_state.active_section = "Condomini"
     return st.session_state.active_section
 
 
@@ -201,6 +209,187 @@ def build_condomino(
     )
 
 
+def slugify_filename(value: str) -> str:
+    slug = re.sub(r"[^a-zA-Z0-9_-]+", "_", value.strip())
+    return slug.strip("_") or "export"
+
+
+def location_from_address(address: str) -> str:
+    if not address.strip():
+        return "Luogo non specificato"
+    parts = [part.strip() for part in address.split(",") if part.strip()]
+    return parts[-1] if parts else address.strip()
+
+
+def format_document_date(value: date) -> str:
+    mesi = [
+        "gennaio",
+        "febbraio",
+        "marzo",
+        "aprile",
+        "maggio",
+        "giugno",
+        "luglio",
+        "agosto",
+        "settembre",
+        "ottobre",
+        "novembre",
+        "dicembre",
+    ]
+    return f"{value.day} {mesi[value.month - 1]} {value.year}"
+
+
+def _pdf_paragraph(
+    text: str, style: PropertySet, *, allow_markup: bool = False
+) -> Paragraph:
+    if allow_markup:
+        safe_text = text.replace("&", "&amp;")
+    else:
+        safe_text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    return Paragraph(safe_text, cast(ParagraphStyle, style))
+
+
+def _build_info_table(rows: list[tuple[str, str]], styles) -> Table:
+    data = [
+        [
+            _pdf_paragraph(f"<b>{label}</b>", styles["BodyText"], allow_markup=True),
+            _pdf_paragraph(value or "-", styles["BodyText"]),
+        ]
+        for label, value in rows
+    ]
+    table = Table(data, colWidths=[4.2 * cm, 11.8 * cm])
+    table.setStyle(
+        TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+            ]
+        )
+    )
+    return table
+
+
+def _build_grid_table(headers: list[str], rows: list[list[str]], styles) -> Table:
+    data = [
+        [
+            _pdf_paragraph(f"<b>{header}</b>", styles["BodyText"], allow_markup=True)
+            for header in headers
+        ]
+    ]
+    data.extend(
+        [
+            [_pdf_paragraph(value or "-", styles["BodyText"]) for value in row]
+            for row in rows
+        ]
+    )
+    table = Table(data, repeatRows=1)
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#d9e7f5")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#163047")),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#c9d4df")),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                ("TOPPADDING", (0, 0), (-1, -1), 6),
+                (
+                    "ROWBACKGROUNDS",
+                    (0, 1),
+                    (-1, -1),
+                    [colors.white, colors.HexColor("#f5f7fa")],
+                ),
+            ]
+        )
+    )
+    return table
+
+
+def build_component_pdf(
+    *,
+    title: str,
+    info_rows: list[tuple[str, str]],
+    movement_rows: list[list[str]],
+    child_table: tuple[list[str], list[list[str]]] | None = None,
+    footer_text: str | None = None,
+) -> bytes:
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        leftMargin=1.6 * cm,
+        rightMargin=1.6 * cm,
+        topMargin=1.6 * cm,
+        bottomMargin=1.6 * cm,
+    )
+    styles = getSampleStyleSheet()
+    styles.add(
+        ParagraphStyle(
+            name="SectionTitle",
+            parent=styles["Heading2"],
+            textColor=colors.HexColor("#163047"),
+            spaceAfter=8,
+        )
+    )
+    styles.add(
+        ParagraphStyle(
+            name="FooterRight",
+            parent=styles["BodyText"],
+            alignment=2,
+            textColor=colors.HexColor("#4a5f70"),
+        )
+    )
+
+    story = [
+        _pdf_paragraph(title, styles["Title"]),
+        Spacer(1, 0.35 * cm),
+        _pdf_paragraph("Dati principali", styles["SectionTitle"]),
+        _build_info_table(info_rows, styles),
+        Spacer(1, 0.35 * cm),
+    ]
+
+    if child_table and child_table[1]:
+        headers, rows = child_table
+        story.extend(
+            [
+                _pdf_paragraph("Elementi collegati", styles["SectionTitle"]),
+                _build_grid_table(headers, rows, styles),
+                Spacer(1, 0.35 * cm),
+            ]
+        )
+
+    story.append(_pdf_paragraph("Movimenti", styles["SectionTitle"]))
+    if movement_rows:
+        story.append(
+            _build_grid_table(
+                ["Data", "Tipo", "Descrizione", "Importo"], movement_rows, styles
+            )
+        )
+    else:
+        story.append(_pdf_paragraph("Nessun movimento registrato.", styles["BodyText"]))
+
+    if footer_text:
+        story.extend(
+            [
+                Spacer(1, 0.5 * cm),
+                _pdf_paragraph(footer_text, styles["FooterRight"]),
+            ]
+        )
+
+    doc.build(story)
+    return buffer.getvalue()
+
+
+def render_export_button(*, label: str, pdf_bytes: bytes, filename: str) -> None:
+    st.download_button(
+        label,
+        data=pdf_bytes,
+        file_name=filename,
+        mime="application/pdf",
+        use_container_width=True,
+    )
+
+
 def persistent_selectbox(
     label: str,
     options: list[str],
@@ -246,8 +435,8 @@ def render_header(archivio: ArchivioCondomini) -> None:
     st.markdown(
         f"""
         <div class="hero-card">
-            <div class="eyebrow">Gestione gerarchica</div>
-            <h1 class="headline">ArCo</h1>
+            <div class="eyebrow">Amministratore Elettronico</div>
+            <h1 class="headline">AmEle</h1>
             <p class="subhead">
                 {len(archivio.condomini)} condomini, {archivio.totale_palazzine()} palazzine e {archivio.totale_appartamenti()} appartamenti con rendiconti separati.
             </p>
@@ -277,7 +466,7 @@ def render_global_summary(archivio: ArchivioCondomini) -> None:
 
 
 def render_section_nav() -> str:
-    sections = ["Condominio", "Palazzine", "Appartamenti"]
+    sections = ["Condomini", "Palazzine", "Appartamenti"]
     active_section = get_active_section()
     cols = st.columns(len(sections))
     for col, section in zip(cols, sections):
@@ -390,7 +579,7 @@ def open_add_condominio_dialog(archivio: ArchivioCondomini) -> None:
             except ValueError as error:
                 st.error(str(error))
             else:
-                save_and_refresh(archivio, "Condominio aggiunto.", "Condominio")
+                save_and_refresh(archivio, "Condominio aggiunto.", "Condomini")
 
 
 @st.dialog("Aggiungi palazzina", width="large")
@@ -460,7 +649,9 @@ def open_add_appartamento_dialog(
             or not piano.strip()
             or not condomino_compilato(prop_nome, prop_cognome)
         ):
-            st.error("Codice, interno, piano, nome e cognome del proprietario sono obbligatori.")
+            st.error(
+                "Codice, interno, piano, nome e cognome del proprietario sono obbligatori."
+            )
         else:
             proprietario = build_condomino(
                 nome=prop_nome,
@@ -472,7 +663,9 @@ def open_add_appartamento_dialog(
             occupante = proprietario
             if occ_nome.strip() or occ_cognome.strip():
                 if not condomino_compilato(occ_nome, occ_cognome):
-                    st.error("Se specifichi il residente, nome e cognome sono obbligatori.")
+                    st.error(
+                        "Se specifichi il residente, nome e cognome sono obbligatori."
+                    )
                     return
                 occupante = build_condomino(
                     nome=occ_nome,
@@ -523,7 +716,7 @@ def open_edit_condominio_dialog(
             except ValueError as error:
                 st.error(str(error))
             else:
-                save_and_refresh(archivio, "Condominio aggiornato.", "Condominio")
+                save_and_refresh(archivio, "Condominio aggiornato.", "Condomini")
 
 
 @st.dialog("Modifica palazzina", width="large")
@@ -595,11 +788,31 @@ def open_edit_appartamento_dialog(
         occupante_uguale_al_proprietario = (
             occupante_attuale == target.proprietario if occupante_attuale else False
         )
-        occ_default_nome = "" if occupante_uguale_al_proprietario else (occupante_attuale.nome if occupante_attuale else "")
-        occ_default_cognome = "" if occupante_uguale_al_proprietario else (occupante_attuale.cognome if occupante_attuale else "")
-        occ_default_tel = "" if occupante_uguale_al_proprietario else (occupante_attuale.telefono if occupante_attuale else "")
-        occ_default_email = "" if occupante_uguale_al_proprietario else (occupante_attuale.email if occupante_attuale else "")
-        occ_default_cf = "" if occupante_uguale_al_proprietario else (occupante_attuale.codice_fiscale if occupante_attuale else "")
+        occ_default_nome = (
+            ""
+            if occupante_uguale_al_proprietario
+            else (occupante_attuale.nome if occupante_attuale else "")
+        )
+        occ_default_cognome = (
+            ""
+            if occupante_uguale_al_proprietario
+            else (occupante_attuale.cognome if occupante_attuale else "")
+        )
+        occ_default_tel = (
+            ""
+            if occupante_uguale_al_proprietario
+            else (occupante_attuale.telefono if occupante_attuale else "")
+        )
+        occ_default_email = (
+            ""
+            if occupante_uguale_al_proprietario
+            else (occupante_attuale.email if occupante_attuale else "")
+        )
+        occ_default_cf = (
+            ""
+            if occupante_uguale_al_proprietario
+            else (occupante_attuale.codice_fiscale if occupante_attuale else "")
+        )
         o1, o2, o3 = st.columns(3)
         occ_nome = o1.text_input("Nome residente", value=occ_default_nome)
         occ_cognome = o2.text_input("Cognome residente", value=occ_default_cognome)
@@ -615,7 +828,9 @@ def open_edit_appartamento_dialog(
             or not piano.strip()
             or not condomino_compilato(prop_nome, prop_cognome)
         ):
-            st.error("Codice, interno, piano, nome e cognome del proprietario sono obbligatori.")
+            st.error(
+                "Codice, interno, piano, nome e cognome del proprietario sono obbligatori."
+            )
         else:
             proprietario = build_condomino(
                 nome=prop_nome,
@@ -627,7 +842,9 @@ def open_edit_appartamento_dialog(
             occupante = proprietario
             if occ_nome.strip() or occ_cognome.strip():
                 if not condomino_compilato(occ_nome, occ_cognome):
-                    st.error("Se specifichi il residente, nome e cognome sono obbligatori.")
+                    st.error(
+                        "Se specifichi il residente, nome e cognome sono obbligatori."
+                    )
                     return
                 occupante = build_condomino(
                     nome=occ_nome,
@@ -669,7 +886,7 @@ def open_delete_condominio_dialog(
             use_container_width=True,
         ):
             archivio.rimuovi_condominio(nome_condominio)
-            save_and_refresh(archivio, "Condominio rimosso.", "Condominio")
+            save_and_refresh(archivio, "Condominio rimosso.", "Condomini")
     with col2:
         if st.button(
             "Annulla",
@@ -753,7 +970,7 @@ def render_condominio_tab(archivio: ArchivioCondomini) -> None:
             widget_key="manage_condominio",
         )
         target = options[target_name]
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
         with col1:
             if st.button(
                 "Modifica condominio",
@@ -769,6 +986,48 @@ def render_condominio_tab(archivio: ArchivioCondomini) -> None:
                 key="delete_condominio_button",
             ):
                 open_delete_condominio_dialog(archivio, target_name)
+        with col3:
+            render_export_button(
+                label="Esporta condominio",
+                pdf_bytes=build_component_pdf(
+                    title=f"Condominio {target.nome}",
+                    info_rows=[
+                        ("Nome", target.nome),
+                        ("Indirizzo", target.indirizzo or "-"),
+                        ("Note", target.note or "-"),
+                        ("Saldo proprio", format_currency(target.saldo())),
+                        ("Saldo complessivo", format_currency(target.totale_saldo())),
+                    ],
+                    child_table=(
+                        [
+                            "Palazzina",
+                            "Appartamenti",
+                            "Saldo proprio",
+                            "Saldo complessivo",
+                        ],
+                        [
+                            [
+                                palazzina.nome,
+                                str(len(palazzina.appartamenti)),
+                                format_currency(palazzina.saldo()),
+                                format_currency(palazzina.totale_saldo()),
+                            ]
+                            for palazzina in target.palazzine
+                        ],
+                    ),
+                    movement_rows=[
+                        [
+                            movimento.data_movimento,
+                            movimento.tipo,
+                            movimento.descrizione,
+                            format_currency(movimento.importo),
+                        ]
+                        for movimento in target.movimenti
+                    ],
+                    footer_text=f"{location_from_address(target.indirizzo)}, {format_document_date(date.today())}",
+                ),
+                filename=f"condominio_{slugify_filename(target.nome)}.pdf",
+            )
         st.caption(
             "L'eliminazione rimuove anche palazzine, appartamenti e rendiconti collegati."
         )
@@ -793,7 +1052,7 @@ def render_condominio_tab(archivio: ArchivioCondomini) -> None:
         archivio,
         target=target,
         title=f"Rendiconto del condominio {target.nome}",
-        active_section="Condominio",
+        active_section="Condomini",
         saldo_complessivo_label="Saldo complessivo con livelli figli",
         saldo_complessivo_valore=target.totale_saldo(),
     )
@@ -827,7 +1086,7 @@ def render_palazzine_tab(archivio: ArchivioCondomini) -> None:
             widget_key="manage_palazzina",
         )
         target = options[target_name]
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
         with col1:
             if st.button(
                 "Modifica palazzina",
@@ -843,6 +1102,47 @@ def render_palazzine_tab(archivio: ArchivioCondomini) -> None:
                 key="delete_palazzina_button",
             ):
                 open_delete_palazzina_dialog(archivio, condominio, target_name)
+        with col3:
+            render_export_button(
+                label="Esporta palazzina",
+                pdf_bytes=build_component_pdf(
+                    title=f"Palazzina {target.nome}",
+                    info_rows=[
+                        ("Condominio", condominio.nome),
+                        ("Nome", target.nome),
+                        ("Note", target.note or "-"),
+                        ("Saldo proprio", format_currency(target.saldo())),
+                        ("Saldo complessivo", format_currency(target.totale_saldo())),
+                    ],
+                    child_table=(
+                        ["Codice", "Interno", "Piano", "Proprietario", "Saldo proprio"],
+                        [
+                            [
+                                appartamento.codice,
+                                appartamento.interno,
+                                appartamento.piano,
+                                appartamento.proprietario.nome_completo,
+                                format_currency(appartamento.saldo()),
+                            ]
+                            for appartamento in target.appartamenti
+                        ],
+                    ),
+                    movement_rows=[
+                        [
+                            movimento.data_movimento,
+                            movimento.tipo,
+                            movimento.descrizione,
+                            format_currency(movimento.importo),
+                        ]
+                        for movimento in target.movimenti
+                    ],
+                    footer_text=f"{location_from_address(condominio.indirizzo)}, {format_document_date(date.today())}",
+                ),
+                filename=(
+                    f"palazzina_{slugify_filename(condominio.nome)}_"
+                    f"{slugify_filename(target.nome)}.pdf"
+                ),
+            )
         st.caption(
             "L'eliminazione rimuove anche gli appartamenti e i rendiconti della palazzina."
         )
@@ -909,7 +1209,7 @@ def render_appartamenti_tab(archivio: ArchivioCondomini) -> None:
             widget_key="manage_appartamento",
         )
         target = options[target_label]
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
         with col1:
             if st.button(
                 "Modifica appartamento",
@@ -925,6 +1225,73 @@ def render_appartamenti_tab(archivio: ArchivioCondomini) -> None:
                 key="delete_appartamento_button",
             ):
                 open_delete_appartamento_dialog(archivio, palazzina, target.codice)
+        with col3:
+            render_export_button(
+                label="Esporta appartamento",
+                pdf_bytes=build_component_pdf(
+                    title=f"Appartamento {target.codice}",
+                    info_rows=[
+                        ("Condominio", condominio.nome),
+                        ("Palazzina", palazzina.nome),
+                        ("Codice", target.codice),
+                        ("Interno", target.interno),
+                        ("Piano", target.piano),
+                        ("Superficie", f"{target.superficie_mq:.2f} mq"),
+                        ("Millesimi", f"{target.millesimi:.2f}"),
+                        ("Proprietario", target.proprietario.nome_completo),
+                        ("Telefono proprietario", target.proprietario.telefono or "-"),
+                        ("Email proprietario", target.proprietario.email or "-"),
+                        (
+                            "Codice fiscale proprietario",
+                            target.proprietario.codice_fiscale or "-",
+                        ),
+                        (
+                            "Occupante",
+                            target.occupante.nome_completo if target.occupante else "-",
+                        ),
+                        (
+                            "Telefono occupante",
+                            (
+                                target.occupante.telefono
+                                if target.occupante and target.occupante.telefono
+                                else "-"
+                            ),
+                        ),
+                        (
+                            "Email occupante",
+                            (
+                                target.occupante.email
+                                if target.occupante and target.occupante.email
+                                else "-"
+                            ),
+                        ),
+                        (
+                            "Codice fiscale occupante",
+                            (
+                                target.occupante.codice_fiscale
+                                if target.occupante and target.occupante.codice_fiscale
+                                else "-"
+                            ),
+                        ),
+                        ("Note", target.note or "-"),
+                        ("Saldo proprio", format_currency(target.saldo())),
+                    ],
+                    movement_rows=[
+                        [
+                            movimento.data_movimento,
+                            movimento.tipo,
+                            movimento.descrizione,
+                            format_currency(movimento.importo),
+                        ]
+                        for movimento in target.movimenti
+                    ],
+                    footer_text=f"{location_from_address(condominio.indirizzo)}, {format_document_date(date.today())}",
+                ),
+                filename=(
+                    f"appartamento_{slugify_filename(condominio.nome)}_"
+                    f"{slugify_filename(palazzina.nome)}_{slugify_filename(target.codice)}.pdf"
+                ),
+            )
         st.caption("L'eliminazione rimuove anche il rendiconto dell'appartamento.")
 
     rows = [
@@ -961,7 +1328,7 @@ def main() -> None:
     render_header(archivio)
     active_section = render_section_nav()
 
-    if active_section == "Condominio":
+    if active_section == "Condomini":
         render_condominio_tab(archivio)
     elif active_section == "Palazzine":
         render_palazzine_tab(archivio)
