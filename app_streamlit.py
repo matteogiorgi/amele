@@ -44,8 +44,11 @@ def load_styles() -> None:
                     radial-gradient(circle at 85% 0%, rgba(255, 227, 191, 0.85), transparent 22%),
                     linear-gradient(180deg, #f5efe3 0%, #edf2f7 100%);
             }
+            header[data-testid="stHeader"] {
+                background: transparent;
+            }
             .block-container {
-                padding-top: 1.6rem;
+                padding-top: 0.8rem;
                 padding-bottom: 2rem;
             }
             .hero-card {
