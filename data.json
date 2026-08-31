@@ -1,0 +1,526 @@
+{
+  "condominiums": [
+    {
+      "transactions": [
+        {
+          "description": "Assicurazione stabile",
+          "amount": 1850.0,
+          "type": "charge",
+          "transaction_date": "2026-01-15"
+        },
+        {
+          "description": "Versamento fondo cassa",
+          "amount": 2500.0,
+          "type": "payment",
+          "transaction_date": "2026-02-10"
+        }
+      ],
+      "name": "Residenza Magnolia",
+      "address": "Via dei Tigli 18, Milano",
+      "buildings": [
+        {
+          "transactions": [
+            {
+              "description": "Pulizia scale palazzina A",
+              "amount": 320.0,
+              "type": "charge",
+              "transaction_date": "2026-03-02"
+            }
+          ],
+          "name": "Palazzina A",
+          "apartments": [
+            {
+              "transactions": [
+                {
+                  "description": "Rata condominiale gennaio",
+                  "amount": 280.0,
+                  "type": "charge",
+                  "transaction_date": "2026-01-05"
+                },
+                {
+                  "description": "Bonifico rata gennaio",
+                  "amount": 280.0,
+                  "type": "payment",
+                  "transaction_date": "2026-01-12"
+                }
+              ],
+              "code": "A-01",
+              "unit": "1",
+              "floor": "1",
+              "area_sqm": 82.5,
+              "shares": 95.0,
+              "owner": {
+                "first_name": "Alessandro",
+                "last_name": "Riva",
+                "phone": "3331001001",
+                "email": "alessandro.riva@example.com",
+                "tax_code": "RVALSN82A01F205X"
+              },
+              "occupant": {
+                "first_name": "Alessandro",
+                "last_name": "Riva",
+                "phone": "3331001001",
+                "email": "alessandro.riva@example.com",
+                "tax_code": "RVALSN82A01F205X"
+              },
+              "notes": "Balcone lato cortile"
+            },
+            {
+              "transactions": [
+                {
+                  "description": "Rata condominiale febbraio",
+                  "amount": 310.0,
+                  "type": "charge",
+                  "transaction_date": "2026-02-05"
+                }
+              ],
+              "code": "A-02",
+              "unit": "2",
+              "floor": "1",
+              "area_sqm": 91.0,
+              "shares": 107.0,
+              "owner": {
+                "first_name": "Giulia",
+                "last_name": "Serra",
+                "phone": "3331001002",
+                "email": "giulia.serra@example.com",
+                "tax_code": "SRRGLI85B41F205Y"
+              },
+              "occupant": {
+                "first_name": "Marco",
+                "last_name": "Leoni",
+                "phone": "3331001099",
+                "email": "marco.leoni@example.com",
+                "tax_code": "LNEMRC88L22F205Z"
+              },
+              "notes": "Appartamento affittato"
+            },
+            {
+              "transactions": [
+                {
+                  "description": "Rata condominiale marzo",
+                  "amount": 260.0,
+                  "type": "charge",
+                  "transaction_date": "2026-03-05"
+                },
+                {
+                  "description": "Pagamento parziale",
+                  "amount": 150.0,
+                  "type": "payment",
+                  "transaction_date": "2026-03-20"
+                }
+              ],
+              "code": "A-03",
+              "unit": "6",
+              "floor": "3",
+              "area_sqm": 75.0,
+              "shares": 88.0,
+              "owner": {
+                "first_name": "Paolo",
+                "last_name": "Mancini",
+                "phone": "3331001003",
+                "email": "paolo.mancini@example.com",
+                "tax_code": "MNCPLA79C10F205P"
+              },
+              "occupant": {
+                "first_name": "Paolo",
+                "last_name": "Mancini",
+                "phone": "3331001003",
+                "email": "paolo.mancini@example.com",
+                "tax_code": "MNCPLA79C10F205P"
+              },
+              "notes": ""
+            },
+            {
+              "transactions": [
+                {
+                  "description": "Rata condominiale aprile",
+                  "amount": 295.0,
+                  "type": "charge",
+                  "transaction_date": "2026-04-02"
+                },
+                {
+                  "description": "Pagamento rata aprile",
+                  "amount": 295.0,
+                  "type": "payment",
+                  "transaction_date": "2026-04-05"
+                }
+              ],
+              "code": "A-04",
+              "unit": "7",
+              "floor": "3",
+              "area_sqm": 87.0,
+              "shares": 101.0,
+              "owner": {
+                "first_name": "Silvia",
+                "last_name": "Marini",
+                "phone": "3331001006",
+                "email": "silvia.marini@example.com",
+                "tax_code": "MRNSLV84H45F205W"
+              },
+              "occupant": {
+                "first_name": "Silvia",
+                "last_name": "Marini",
+                "phone": "3331001006",
+                "email": "silvia.marini@example.com",
+                "tax_code": "MRNSLV84H45F205W"
+              },
+              "notes": "Vista sul giardino condominiale"
+            },
+            {
+              "transactions": [
+                {
+                  "description": "Contributo ascensore",
+                  "amount": 140.0,
+                  "type": "charge",
+                  "transaction_date": "2026-03-28"
+                }
+              ],
+              "code": "A-05",
+              "unit": "8",
+              "floor": "4",
+              "area_sqm": 64.0,
+              "shares": 74.0,
+              "owner": {
+                "first_name": "Francesco",
+                "last_name": "Villa",
+                "phone": "3331001007",
+                "email": "francesco.villa@example.com",
+                "tax_code": "VLLFNC92L18F205N"
+              },
+              "occupant": {
+                "first_name": "Anna",
+                "last_name": "Villa",
+                "phone": "3331001088",
+                "email": "anna.villa@example.com",
+                "tax_code": "VLLNNA95T52F205Q"
+              },
+              "notes": "Locato a familiare"
+            }
+          ],
+          "notes": "Scala principale con ascensore"
+        },
+        {
+          "transactions": [
+            {
+              "description": "Manutenzione cancello box",
+              "amount": 540.0,
+              "type": "charge",
+              "transaction_date": "2026-02-18"
+            },
+            {
+              "description": "Rimborso assicurazione",
+              "amount": 120.0,
+              "type": "payment",
+              "transaction_date": "2026-03-01"
+            }
+          ],
+          "name": "Palazzina B",
+          "apartments": [
+            {
+              "transactions": [],
+              "code": "B-01",
+              "unit": "3",
+              "floor": "2",
+              "area_sqm": 98.0,
+              "shares": 113.0,
+              "owner": {
+                "first_name": "Elena",
+                "last_name": "Ferri",
+                "phone": "3331001004",
+                "email": "elena.ferri@example.com",
+                "tax_code": "FRRLNE90D55F205R"
+              },
+              "occupant": {
+                "first_name": "Elena",
+                "last_name": "Ferri",
+                "phone": "3331001004",
+                "email": "elena.ferri@example.com",
+                "tax_code": "FRRLNE90D55F205R"
+              },
+              "notes": "Cantina inclusa"
+            },
+            {
+              "transactions": [
+                {
+                  "description": "Rata straordinaria facciata",
+                  "amount": 450.0,
+                  "type": "charge",
+                  "transaction_date": "2026-03-15"
+                }
+              ],
+              "code": "B-02",
+              "unit": "4",
+              "floor": "2",
+              "area_sqm": 102.0,
+              "shares": 118.0,
+              "owner": {
+                "first_name": "Luca",
+                "last_name": "Breda",
+                "phone": "3331001005",
+                "email": "luca.breda@example.com",
+                "tax_code": "BRDLCU77E14F205K"
+              },
+              "occupant": {
+                "first_name": "Luca",
+                "last_name": "Breda",
+                "phone": "3331001005",
+                "email": "luca.breda@example.com",
+                "tax_code": "BRDLCU77E14F205K"
+              },
+              "notes": ""
+            },
+            {
+              "transactions": [
+                {
+                  "description": "Rata condominiale marzo",
+                  "amount": 340.0,
+                  "type": "charge",
+                  "transaction_date": "2026-03-06"
+                },
+                {
+                  "description": "Pagamento rata marzo",
+                  "amount": 340.0,
+                  "type": "payment",
+                  "transaction_date": "2026-03-11"
+                }
+              ],
+              "code": "B-03",
+              "unit": "5",
+              "floor": "2",
+              "area_sqm": 89.5,
+              "shares": 104.0,
+              "owner": {
+                "first_name": "Marta",
+                "last_name": "Neri",
+                "phone": "3331001008",
+                "email": "marta.neri@example.com",
+                "tax_code": "NREMRT87R49F205S"
+              },
+              "occupant": {
+                "first_name": "Marta",
+                "last_name": "Neri",
+                "phone": "3331001008",
+                "email": "marta.neri@example.com",
+                "tax_code": "NREMRT87R49F205S"
+              },
+              "notes": "Terrazzo ampio"
+            },
+            {
+              "transactions": [
+                {
+                  "description": "Contributo facciata",
+                  "amount": 470.0,
+                  "type": "charge",
+                  "transaction_date": "2026-03-18"
+                },
+                {
+                  "description": "Acconto facciata",
+                  "amount": 200.0,
+                  "type": "payment",
+                  "transaction_date": "2026-03-25"
+                }
+              ],
+              "code": "B-04",
+              "unit": "9",
+              "floor": "4",
+              "area_sqm": 110.0,
+              "shares": 126.0,
+              "owner": {
+                "first_name": "Roberto",
+                "last_name": "Galli",
+                "phone": "3331001009",
+                "email": "roberto.galli@example.com",
+                "tax_code": "GLLRRT76M09F205U"
+              },
+              "occupant": {
+                "first_name": "Roberto",
+                "last_name": "Galli",
+                "phone": "3331001009",
+                "email": "roberto.galli@example.com",
+                "tax_code": "GLLRRT76M09F205U"
+              },
+              "notes": "Ultimo piano con doppia esposizione"
+            }
+          ],
+          "notes": "Accesso dal giardino interno"
+        }
+      ],
+      "notes": "Condominio con area verde comune"
+    },
+    {
+      "transactions": [
+        {
+          "description": "Spese amministratore trimestre",
+          "amount": 900.0,
+          "type": "charge",
+          "transaction_date": "2026-01-20"
+        }
+      ],
+      "name": "Corte Naviglio",
+      "address": "Via Alzaia 7, Pavia",
+      "buildings": [
+        {
+          "transactions": [
+            {
+              "description": "Pulizia cortile",
+              "amount": 180.0,
+              "type": "charge",
+              "transaction_date": "2026-02-03"
+            }
+          ],
+          "name": "Edificio Centrale",
+          "apartments": [
+            {
+              "transactions": [
+                {
+                  "description": "Rata annuale assicurazione",
+                  "amount": 390.0,
+                  "type": "charge",
+                  "transaction_date": "2026-01-10"
+                },
+                {
+                  "description": "Pagamento assicurazione",
+                  "amount": 390.0,
+                  "type": "payment",
+                  "transaction_date": "2026-01-25"
+                }
+              ],
+              "code": "C-01",
+              "unit": "A1",
+              "floor": "Terra",
+              "area_sqm": 68.0,
+              "shares": 79.0,
+              "owner": {
+                "first_name": "Chiara",
+                "last_name": "Fontana",
+                "phone": "3332002001",
+                "email": "chiara.fontana@example.com",
+                "tax_code": "FNTSRA91F50G388L"
+              },
+              "occupant": {
+                "first_name": "Chiara",
+                "last_name": "Fontana",
+                "phone": "3332002001",
+                "email": "chiara.fontana@example.com",
+                "tax_code": "FNTSRA91F50G388L"
+              },
+              "notes": "Ingresso indipendente"
+            },
+            {
+              "transactions": [
+                {
+                  "description": "Rata riscaldamento",
+                  "amount": 220.0,
+                  "type": "charge",
+                  "transaction_date": "2026-02-12"
+                },
+                {
+                  "description": "Pagamento rata riscaldamento",
+                  "amount": 220.0,
+                  "type": "payment",
+                  "transaction_date": "2026-02-18"
+                }
+              ],
+              "code": "C-02",
+              "unit": "B2",
+              "floor": "1",
+              "area_sqm": 84.0,
+              "shares": 96.0,
+              "owner": {
+                "first_name": "Davide",
+                "last_name": "Pini",
+                "phone": "3332002002",
+                "email": "davide.pini@example.com",
+                "tax_code": "PNIDVD83G12G388M"
+              },
+              "occupant": {
+                "first_name": "Davide",
+                "last_name": "Pini",
+                "phone": "3332002002",
+                "email": "davide.pini@example.com",
+                "tax_code": "PNIDVD83G12G388M"
+              },
+              "notes": ""
+            },
+            {
+              "transactions": [
+                {
+                  "description": "Rata manutenzione tetto",
+                  "amount": 180.0,
+                  "type": "charge",
+                  "transaction_date": "2026-03-03"
+                }
+              ],
+              "code": "C-03",
+              "unit": "C3",
+              "floor": "1",
+              "area_sqm": 77.0,
+              "shares": 89.0,
+              "owner": {
+                "first_name": "Irene",
+                "last_name": "Moretti",
+                "phone": "3332002003",
+                "email": "irene.moretti@example.com",
+                "tax_code": "MRTRNI90S63G388H"
+              },
+              "occupant": {
+                "first_name": "Irene",
+                "last_name": "Moretti",
+                "phone": "3332002003",
+                "email": "irene.moretti@example.com",
+                "tax_code": "MRTRNI90S63G388H"
+              },
+              "notes": "Ristrutturato di recente"
+            },
+            {
+              "transactions": [
+                {
+                  "description": "Rata riscaldamento",
+                  "amount": 205.0,
+                  "type": "charge",
+                  "transaction_date": "2026-02-14"
+                },
+                {
+                  "description": "Saldo riscaldamento",
+                  "amount": 205.0,
+                  "type": "payment",
+                  "transaction_date": "2026-02-27"
+                }
+              ],
+              "code": "C-04",
+              "unit": "D4",
+              "floor": "2",
+              "area_sqm": 72.0,
+              "shares": 83.0,
+              "owner": {
+                "first_name": "Stefano",
+                "last_name": "Orsi",
+                "phone": "3332002004",
+                "email": "stefano.orsi@example.com",
+                "tax_code": "RSSSFN81B27G388V"
+              },
+              "occupant": {
+                "first_name": "Valentina",
+                "last_name": "Orsi",
+                "phone": "3332002077",
+                "email": "valentina.orsi@example.com",
+                "tax_code": "RSRVNT89P68G388D"
+              },
+              "notes": "Locazione recente"
+            }
+          ],
+          "notes": "Piccolo stabile di corte"
+        }
+      ],
+      "notes": "Spazi comuni ridotti, facile da testare"
+    },
+    {
+      "transactions": [],
+      "name": "Le Terrazze",
+      "address": "Piazza Aurora 12, Bergamo",
+      "buildings": [],
+      "notes": "Condominio vuoto di esempio per testare creazione da zero"
+    }
+  ]
+}

@@ -1,231 +1,234 @@
-# AmEle
+# AmEle: simple condo manager
 
-AmEle e una piccola applicazione Streamlit per gestire un archivio di condomini con struttura gerarchica:
+AmEle is a small [Streamlit](https://streamlit.io/) application for managing a condominium archive with a hierarchical structure:
 
-- un archivio contiene piu condomini
-- ogni condominio contiene piu palazzine
-- ogni palazzina contiene piu appartamenti
-- ogni livello ha il proprio rendiconto spese
+- an archive contains multiple condominiums
+- each condominium contains multiple buildings
+- each building contains multiple apartments
+- each level has its own financial statement
 
-L'app permette di lavorare sui dati da interfaccia grafica, salvandoli nel file `condominio_data.json`.
-
-
-
-
-## Struttura del progetto
-
-- `app_streamlit.py`: interfaccia grafica Streamlit
-- `condominio.py`: modello dati, logica di caricamento e salvataggio JSON
-- `condominio_data.json`: archivio persistente dei dati
-- `requirements.txt`: dipendenze Python da installare con `pip`
+The app lets you work on the data through a graphical interface, saving it to the `data.json` file.
 
 
 
 
-## Modello dati
+## Project structure
 
-La gerarchia è questa:
+- `app.py`: Streamlit graphical interface
+- `models.py`: data model, JSON loading and saving logic
+- `data.json`: persistent data archive
+- `requirements.txt`: Python dependencies to install with `pip`
 
-- `ArchivioCondomini`
-  - contiene la lista dei condomini
-- `Condominio`
-  - dati principali del condominio
-  - lista delle palazzine
-  - rendiconto proprio
-- `Palazzina`
-  - dati principali della palazzina
-  - lista degli appartamenti
-  - rendiconto proprio
-- `Appartamento`
-  - dati dell'unita immobiliare
-  - proprietario
-  - occupante
-  - rendiconto proprio
-- `Condomino`
-  - nome
-  - cognome
-  - telefono
+
+
+
+## Data model
+
+The hierarchy is as follows:
+
+- `CondominiumArchive`
+  - holds the list of condominiums
+- `Condominium`
+  - main condominium data
+  - list of buildings
+  - own statement
+- `Building`
+  - main building data
+  - list of apartments
+  - own statement
+- `Apartment`
+  - real estate unit data
+  - owner
+  - occupant
+  - own statement
+- `Person`
+  - first name
+  - last name
+  - phone
   - email
-  - codice fiscale
-- `Movimento`
-  - descrizione
-  - importo
-  - tipo (`addebito` o `pagamento`)
-  - data del movimento
+  - tax code
+- `Transaction`
+  - description
+  - amount
+  - type (`charge` or `payment`)
+  - transaction date
 
-### Diagramma delle classi
+
+### Class diagram
 
 ```mermaid
 classDiagram
-    class ArchivioCondomini {
-        +condomini: list[Condominio]
-        +totale_saldo()
-        +totale_palazzine()
-        +totale_appartamenti()
+    class CondominiumArchive {
+        +condominiums: list[Condominium]
+        +total_balance()
+        +total_buildings()
+        +total_apartments()
     }
 
-    class Condominio {
-        +nome: str
-        +indirizzo: str
-        +note: str
-        +movimenti: list[Movimento]
-        +palazzine: list[Palazzina]
-        +saldo()
-        +totale_saldo()
+    class Condominium {
+        +name: str
+        +address: str
+        +notes: str
+        +transactions: list[Transaction]
+        +buildings: list[Building]
+        +balance()
+        +total_balance()
     }
 
-    class Palazzina {
-        +nome: str
-        +note: str
-        +movimenti: list[Movimento]
-        +appartamenti: list[Appartamento]
-        +saldo()
-        +totale_saldo()
+    class Building {
+        +name: str
+        +notes: str
+        +transactions: list[Transaction]
+        +apartments: list[Apartment]
+        +balance()
+        +total_balance()
     }
 
-    class Appartamento {
-        +codice: str
-        +interno: str
-        +piano: str
-        +superficie_mq: float
-        +millesimi: float
-        +note: str
-        +movimenti: list[Movimento]
-        +saldo()
+    class Apartment {
+        +code: str
+        +unit: str
+        +floor: str
+        +area_sqm: float
+        +shares: float
+        +notes: str
+        +transactions: list[Transaction]
+        +balance()
     }
 
-    class Condomino {
-        +nome: str
-        +cognome: str
-        +telefono: str
+    class Person {
+        +first_name: str
+        +last_name: str
+        +phone: str
         +email: str
-        +codice_fiscale: str
-        +nome_completo
+        +tax_code: str
+        +full_name
     }
 
-    class Movimento {
-        +descrizione: str
-        +importo: float
-        +tipo: str
-        +data_movimento: str
+    class Transaction {
+        +description: str
+        +amount: float
+        +type: str
+        +transaction_date: str
     }
 
-    ArchivioCondomini "1" --> "*" Condominio
-    Condominio "1" --> "*" Palazzina
-    Palazzina "1" --> "*" Appartamento
-    Condominio "1" --> "*" Movimento
-    Palazzina "1" --> "*" Movimento
-    Appartamento "1" --> "*" Movimento
-    Appartamento "1" --> "1" Condomino : proprietario
-    Appartamento "1" --> "1" Condomino : occupante
+    CondominiumArchive "1" --> "*" Condominium
+    Condominium "1" --> "*" Building
+    Building "1" --> "*" Apartment
+    Condominium "1" --> "*" Transaction
+    Building "1" --> "*" Transaction
+    Apartment "1" --> "*" Transaction
+    Apartment "1" --> "1" Person : owner
+    Apartment "1" --> "1" Person : occupant
 ```
 
 
-### Saldi
+### Balances
 
-I saldi sono separati per livello:
+Balances are kept separate per level:
 
-- `Saldo proprio`: considera solo i movimenti del componente corrente
-- `Saldo complessivo`: somma il saldo proprio con quello dei livelli figli
+- `Own balance`: only counts the transactions of the current component
+- `Total balance`: adds the own balance to the balances of the child levels
 
-Quindi:
+So:
 
-- un appartamento ha solo `Saldo proprio`
-- una palazzina ha `Saldo proprio` e `Saldo complessivo` con gli appartamenti
-- un condominio ha `Saldo proprio` e `Saldo complessivo` con le palazzine e i relativi appartamenti
-
-
+- an apartment only has an `Own balance`
+- a building has an `Own balance` and a `Total balance` combined with its apartments
+- a condominium has an `Own balance` and a `Total balance` combined with its buildings and their apartments
 
 
-## Funzioni principali
 
-L'app e organizzata in tre sezioni:
 
-- `Condomini`
-- `Palazzine`
-- `Appartamenti`
+## Main features
 
-In ciascuna sezione puoi:
+The app is organized into three sections:
 
-- selezionare il contesto corrente tramite tendine
-- aggiungere un nuovo elemento con finestra modale
-- modificare un elemento esistente con finestra modale
-- eliminare un elemento con conferma modale
-- vedere una tabella riepilogativa coerente col livello selezionato
-- gestire il rendiconto del componente selezionato
-- esportare lo stato completo del componente selezionato tramite una dialog unica
+- `Condominiums`
+- `Buildings`
+- `Apartments`
 
-### Flusso principale
+In each section you can:
+
+- select the current context through dropdowns
+- add a new item with a modal dialog
+- edit an existing item with a modal dialog
+- delete an item with a confirmation modal
+- see a summary table consistent with the selected level
+- manage the statement of the selected component
+- export the full state of the selected component through a single dialog
+
+
+### Main flow
 
 ```mermaid
 flowchart TD
-    A[Avvio app Streamlit] --> B[Caricamento condominio_data.json]
-    B --> C[Scelta sezione: Condomini, Palazzine, Appartamenti]
-    C --> D[Selezione componente corrente]
-    D --> E[Operazione utente]
-    E --> F[Aggiunta o modifica o eliminazione]
-    E --> G[Gestione rendiconto]
-    E --> H[Apertura dialog di esportazione]
-    F --> I[Salvataggio su condominio_data.json]
+    A[Start Streamlit app] --> B[Load data.json]
+    B --> C[Choose section: Condominiums, Buildings, Apartments]
+    C --> D[Select current component]
+    D --> E[User action]
+    E --> F[Add, edit, or delete]
+    E --> G[Manage statement]
+    E --> H[Open export dialog]
+    F --> I[Save to data.json]
     G --> I
-    H --> L[Scelta formato: PDF, Word o Excel]
-    L --> N[Download del file]
-    I --> M[Ricarica interfaccia con stato aggiornato]
+    H --> L[Choose format: PDF, Word, or Excel]
+    L --> N[Download the file]
+    I --> M[Reload interface with updated state]
 ```
 
 
-### Rendiconti
+### Statements
 
-Ogni sezione contiene anche il rendiconto del componente selezionato. Da qui puoi:
+Each section also contains the statement of the selected component. From here you can:
 
-- vedere i saldi
-- vedere i movimenti registrati
-- aggiungere un nuovo movimento tramite finestra modale
-
-
-### Proprietario e occupante
-
-Per ogni appartamento vengono gestiti sia proprietario sia occupante.
-
-Regola usata nell'app:
-
-- se in inserimento o modifica lasci vuoti i campi dell'occupante, l'occupante viene impostato automaticamente uguale al proprietario
-- se l'occupante e diverso dal proprietario, puoi compilarlo manualmente
+- see the balances
+- see the recorded transactions
+- add a new transaction with a modal dialog
 
 
+### Owner and occupant
+
+Both an owner and an occupant are managed for every apartment.
+
+Rule used in the app:
+
+- if you leave the occupant fields empty when adding or editing, the occupant is automatically set equal to the owner
+- if the occupant is different from the owner, you can fill it in manually
 
 
-## Esportazione documenti
 
-Da ogni sezione puoi esportare il componente selezionato aprendo una dialog dedicata:
 
-- `Esporta condominio`
-- `Esporta palazzina`
-- `Esporta appartamento`
+## Document export
 
-Formati disponibili:
+From every section you can export the selected component by opening a dedicated dialog:
+
+- `Export condominium`
+- `Export building`
+- `Export apartment`
+
+Available formats:
 
 - `PDF`
 - `Word (.docx)`
 - `Excel (.xlsx)`
 
-I documenti esportati contengono:
+Exported documents contain:
 
-- dati principali del componente
-- eventuali elementi collegati
-- movimenti registrati
-- saldi
-- luogo del condominio e data di generazione in formato documentale
+- main data of the component
+- any linked items
+- recorded transactions
+- balances
+- condominium location and generation date in document format
 
-### Diagramma del flusso di esportazione
+
+### Export flow diagram
 
 ```mermaid
 flowchart TD
-    A[Click su Esporta condominio/palazzina/appartamento] --> B[Apertura dialog Esporta]
-    B --> C[Scarica PDF]
-    B --> D[Scarica Word]
-    B --> E[Scarica Excel]
-    C --> F[Chiusura dialog e download]
+    A[Click Export condominium/building/apartment] --> B[Open Export dialog]
+    B --> C[Download PDF]
+    B --> D[Download Word]
+    B --> E[Download Excel]
+    C --> F[Close dialog and download]
     D --> F
     E --> F
 ```
@@ -233,32 +236,32 @@ flowchart TD
 
 
 
-## Compatibilita del file dati
+## Data file compatibility
 
-I dati vengono salvati in `condominio_data.json`.
+Data is saved to `data.json`.
 
-Il loader in `condominio.py` gestisce anche la normalizzazione dei dati:
+The loader in `models.py` also handles data normalization:
 
-- se trova vecchi proprietari salvati come stringa, li converte nel nuovo formato anagrafico
-- se l'occupante manca, lo imposta uguale al proprietario
-- se trova il vecchio formato piatto senza archivio di condomini, lo converte automaticamente nel nuovo formato gerarchico
-
-
+- if it finds old owners saved as a plain string, it converts them to the new person format
+- if the occupant is missing, it sets it equal to the owner
+- if it finds the old flat format without a condominium archive, it automatically converts it to the new hierarchical format
 
 
-## Requisiti
 
-- Python 3.10 o superiore
+
+## Requirements
+
+- Python 3.10 or later
 - `pip`
 
-Dipendenze Python:
+Python dependencies:
 
 - `streamlit`
 - `reportlab`
 - `openpyxl`
 - `python-docx`
 
-Puoi installarle con:
+You can install them with:
 
 ```bash
 pip install -r requirements.txt
@@ -267,22 +270,25 @@ pip install -r requirements.txt
 
 
 
-## Avvio
+## Running the app
 
-Per avviare l'app:
+Create and activate a virtual environment, install the dependencies, then start the app:
 
 ```bash
-streamlit run app_streamlit.py
+python3 -m venv .venv
+source .venv/bin/activate  # on Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+streamlit run app.py
 ```
 
-Se usi un ambiente virtuale, attivalo prima oppure richiama direttamente il binario corretto.
+If you already have a virtual environment, just activate it first, or call the correct binary directly.
 
 
 
 
-## File generati e ignorati
+## Generated and ignored files
 
-Il repository include un `.gitignore` che ignora:
+The repository includes a `.gitignore` that ignores:
 
 - `__pycache__/`
 - `.venv/`
@@ -292,8 +298,8 @@ Il repository include un `.gitignore` che ignora:
 
 
 
-## Note pratiche
+## Practical notes
 
-- il file `condominio_data.json` viene aggiornato quando salvi le operazioni dall'interfaccia
-- il dataset puo essere popolato con dati fittizi per testare piu facilmente l'app
-- se vuoi partire da zero, puoi svuotare o sostituire il contenuto di `condominio_data.json`
+- the `data.json` file is updated whenever you save operations from the interface
+- the dataset can be populated with sample data to test the app more easily
+- if you want to start from scratch, you can empty or replace the contents of `data.json`
