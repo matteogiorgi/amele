@@ -9,6 +9,8 @@ AmEle is a small [Streamlit](https://streamlit.io/) application for managing a c
 
 The app lets you work on the data through a graphical interface, saving it to the `data.json` file.
 
+<img class="shot-img" src="scrot.png" alt="AmEle screenshot" />
+
 
 
 
