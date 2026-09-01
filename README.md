@@ -20,6 +20,7 @@ The app lets you work on the data through a graphical interface, saving it to th
 - `models.py`: data model, JSON loading and saving logic
 - `data.json`: persistent data archive
 - `requirements.txt`: Python dependencies to install with `pip`
+- `.streamlit/config.toml`: Streamlit UI configuration (light theme, minimal toolbar)
 
 
 
@@ -28,28 +29,28 @@ The app lets you work on the data through a graphical interface, saving it to th
 
 The hierarchy is as follows:
 
-- `CondominiumArchive`
+- `CondominiumArchive` — the root container; holds every condominium and exposes archive-wide totals.
   - holds the list of condominiums
-- `Condominium`
+- `Condominium` — a condominium complex, grouping one or more buildings under one address.
   - main condominium data
   - list of buildings
   - own statement
-- `Building`
+- `Building` — a single building block within a condominium, grouping its apartments.
   - main building data
   - list of apartments
   - own statement
-- `Apartment`
+- `Apartment` — one real estate unit; its `shares` field is the ownership quota (the Italian *millesimi*) used to apportion condominium expenses.
   - real estate unit data
   - owner
   - occupant
   - own statement
-- `Person`
+- `Person` — a condominium member, referenced as either an apartment's owner or occupant.
   - first name
   - last name
   - phone
   - email
   - tax code
-- `Transaction`
+- `Transaction` — one accounting entry: a `charge` adds to the balance, a `payment` reduces it.
   - description
   - amount
   - type (`charge` or `payment`)
