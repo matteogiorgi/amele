@@ -16,11 +16,11 @@ The app lets you work on the data through a graphical interface, saving it to th
 
 ## Project structure
 
-- `app.py`: Streamlit graphical interface
-- `models.py`: data model, JSON loading and saving logic
-- `data.json`: persistent data archive
-- `requirements.txt`: Python dependencies to install with `pip`
-- `.streamlit/config.toml`: Streamlit UI configuration (light theme, minimal toolbar)
+- [`app.py`](https://github.com/matteogiorgi/amele/blob/main/app.py): Streamlit graphical interface
+- [`models.py`](https://github.com/matteogiorgi/amele/blob/main/models.py): data model, JSON loading and saving logic
+- [`data.json`](https://github.com/matteogiorgi/amele/blob/main/data.json): persistent data archive
+- [`requirements.txt`](https://github.com/matteogiorgi/amele/blob/main/requirements.txt): Python dependencies to install with `pip`
+- [`.streamlit/config.toml`](https://github.com/matteogiorgi/amele/blob/main/.streamlit/config.toml): Streamlit UI configuration (light theme, minimal toolbar)
 
 
 
@@ -143,13 +143,7 @@ So:
 
 ## Main features
 
-The app is organized into three sections:
-
-- `Condominiums`
-- `Buildings`
-- `Apartments`
-
-In each section you can:
+The app is organized into three sections: "Condominiums", "Buildings", "Apartments" and in each section you can:
 
 - select the current context through dropdowns
 - add a new item with a modal dialog
@@ -190,9 +184,7 @@ Each section also contains the statement of the selected component. From here yo
 
 ### Owner and occupant
 
-Both an owner and an occupant are managed for every apartment.
-
-Rule used in the app:
+Both an owner and an occupant are managed for every apartment; rule used in the app:
 
 - if you leave the occupant fields empty when adding or editing, the occupant is automatically set equal to the owner
 - if the occupant is different from the owner, you can fill it in manually
@@ -241,9 +233,7 @@ flowchart TD
 
 ## Data file compatibility
 
-Data is saved to `data.json`.
-
-The loader in `models.py` also handles data normalization:
+Data is saved to `data.json`. The loader in `models.py` also handles data normalization:
 
 - if it finds old owners saved as a plain string, it converts them to the new person format
 - if the occupant is missing, it sets it equal to the owner
