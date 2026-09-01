@@ -143,7 +143,7 @@ So:
 
 ## Main features
 
-The app is organized into three sections: "Condominiums", "Buildings", "Apartments" and in each section you can:
+The app is organized into three sections: *Condominiums*, *Buildings*, *Apartments*. In each section you can:
 
 - select the current context through dropdowns
 - add a new item with a modal dialog
