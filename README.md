@@ -194,17 +194,7 @@ Both an owner and an occupant are managed for every apartment; rule used in the 
 
 ## Document export
 
-From every section you can export the selected component by opening a dedicated dialog:
-
-- `Export condominium`
-- `Export building`
-- `Export apartment`
-
-Available formats:
-
-- `PDF`
-- `Word (.docx)`
-- `Excel (.xlsx)`
+From every section you can export the selected component by opening a dedicated dialog: *Export condominium*, *Export building* and *Export apartment*. Then, each of the options as three available formats: PDF, Word (`.docx`), Excel (`.xlsx`).
 
 Exported documents contain:
 
