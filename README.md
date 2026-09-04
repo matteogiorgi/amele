@@ -16,11 +16,11 @@ The app lets you work on the data through a graphical interface, saving it to th
 
 ## Project structure
 
-- [`app.py`](https://github.com/matteogiorgi/amele/blob/main/app.py): Streamlit graphical interface
-- [`models.py`](https://github.com/matteogiorgi/amele/blob/main/models.py): data model, JSON loading and saving logic
-- [`data.json`](https://github.com/matteogiorgi/amele/blob/main/data.json): persistent data archive
-- [`requirements.txt`](https://github.com/matteogiorgi/amele/blob/main/requirements.txt): Python dependencies to install with `pip`
-- [`.streamlit/config.toml`](https://github.com/matteogiorgi/amele/blob/main/.streamlit/config.toml): Streamlit UI configuration (light theme, minimal toolbar)
+- [`app.py`](https://github.com/matteogiorgi/amele/blob/main/app.py) — Streamlit graphical interface
+- [`models.py`](https://github.com/matteogiorgi/amele/blob/main/models.py) — data model, JSON loading and saving logic
+- [`data.json`](https://github.com/matteogiorgi/amele/blob/main/data.json) — persistent data archive
+- [`requirements.txt`](https://github.com/matteogiorgi/amele/blob/main/requirements.txt) — Python dependencies to install with `pip`
+- [`.streamlit/config.toml`](https://github.com/matteogiorgi/amele/blob/main/.streamlit/config.toml) — Streamlit UI configuration (light theme, minimal toolbar)
 
 
 
